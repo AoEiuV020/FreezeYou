@@ -53,7 +53,7 @@
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_descriptor"
         android:icon="@mipmap/ic_launcher_new_round"
-        android:label="自冻·改"
+        android:label="自冻·鱼"
         android:roundIcon="@mipmap/ic_launcher_new_round">
 
         <activity
@@ -97,7 +97,7 @@
             android:enabled="false"
             android:exported="true"
             android:icon="@mipmap/ic_launcher_round"
-            android:label="自冻·改"
+            android:label="自冻·鱼"
             android:launchMode="singleTask"
             android:targetActivity=".Main"
             android:theme="@style/AppTheme.Dark.Default">
