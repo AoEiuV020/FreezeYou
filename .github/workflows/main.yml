@@ -135,3 +135,4 @@ jobs:
           format: markdown
           disable_web_page_preview: true
           message: ${{ env.UPDATE_BODY }}
+          document: ${{ env.BUILD_NAME_WITH_VERSION }}.apk
