@@ -11,3 +11,9 @@
 /app/debug
 /.idea/caches
 /.idea
+/*.jks
+/*.jks.txt
+/signing.properties
+/*.apk
+/*-mapping.txt
+/*.apk.idsig
