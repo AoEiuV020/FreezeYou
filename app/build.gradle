@@ -65,4 +65,8 @@ dependencies {
     testImplementation "junit:junit:4.13.2"
 }
 
+android.defaultConfig {
+    applicationId = 'cc.aoeiuv020.freezeyou'
+    manifestPlaceholders = [applicationid: applicationId]
+}
 apply from: rootProject.file('signing.gradle')

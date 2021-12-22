@@ -24,25 +24,25 @@
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <permission
-        android:name="cf.playhi.freezeyou.permission.GET_DISABLED_APPLICATIONS"
+        android:name="${applicationId}.permission.GET_DISABLED_APPLICATIONS"
         android:description="@string/getDisabledApplications"
         android:icon="@drawable/ic_notification"
         android:label="@string/getDisabledApplications"
         android:protectionLevel="normal" />
     <permission
-        android:name="cf.playhi.freezeyou.permission.ENABLE_APPLICATIONS"
+        android:name="${applicationId}.permission.ENABLE_APPLICATIONS"
         android:description="@string/enableApplications"
         android:icon="@drawable/ic_notification"
         android:label="@string/enableApplications"
         android:protectionLevel="dangerous" />
     <permission
-        android:name="cf.playhi.freezeyou.permission.DISABLE_APPLICATIONS"
+        android:name="${applicationId}.permission.DISABLE_APPLICATIONS"
         android:description="@string/disableApplications"
         android:icon="@drawable/ic_notification"
         android:label="@string/disableApplications"
         android:protectionLevel="dangerous" />
     <permission
-        android:name="cf.playhi.freezeyou.permission.QUERY_STATUS"
+        android:name="${applicationId}.permission.QUERY_STATUS"
         android:description="@string/queryStatus"
         android:icon="@drawable/ic_notification"
         android:label="@string/queryStatus"
@@ -53,7 +53,7 @@
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_descriptor"
         android:icon="@mipmap/ic_launcher_new_round"
-        android:label="@string/app_name"
+        android:label="自冻·改"
         android:roundIcon="@mipmap/ic_launcher_new_round">
 
         <activity
@@ -97,7 +97,7 @@
             android:enabled="false"
             android:exported="true"
             android:icon="@mipmap/ic_launcher_round"
-            android:label="@string/app_name"
+            android:label="自冻·改"
             android:launchMode="singleTask"
             android:targetActivity=".Main"
             android:theme="@style/AppTheme.Dark.Default">
@@ -413,21 +413,21 @@
             android:excludeFromRecents="true"
             android:exported="true"
             android:launchMode="singleInstance"
-            android:permission="cf.playhi.freezeyou.permission.GET_DISABLED_APPLICATIONS"
+            android:permission="${applicationId}.permission.GET_DISABLED_APPLICATIONS"
             android:theme="@style/AppTheme.Translucent.NoTitleBar" />
         <activity
             android:name=".DisableApplications"
             android:excludeFromRecents="true"
             android:exported="true"
             android:launchMode="singleInstance"
-            android:permission="cf.playhi.freezeyou.permission.DISABLE_APPLICATIONS"
+            android:permission="${applicationId}.permission.DISABLE_APPLICATIONS"
             android:theme="@style/AppTheme.Translucent.NoTitleBar" />
         <activity
             android:name=".EnableApplications"
             android:excludeFromRecents="true"
             android:exported="true"
             android:launchMode="singleInstance"
-            android:permission="cf.playhi.freezeyou.permission.ENABLE_APPLICATIONS"
+            android:permission="${applicationId}.permission.ENABLE_APPLICATIONS"
             android:theme="@style/AppTheme.Translucent.NoTitleBar" />
         <activity
             android:name=".OneKeyScreenLockImmediatelyActivity"
@@ -655,25 +655,25 @@
 
         <provider
             android:name=".export.Query"
-            android:authorities="cf.playhi.freezeyou.export.QUERY"
+            android:authorities="${applicationId}.export.QUERY"
             android:exported="true"
-            android:permission="cf.playhi.freezeyou.permission.QUERY_STATUS"
+            android:permission="${applicationId}.permission.QUERY_STATUS"
             android:process=":backgroundService" />
         <provider
             android:name=".export.Unfreeze"
-            android:authorities="cf.playhi.freezeyou.export.UNFREEZE"
+            android:authorities="${applicationId}.export.UNFREEZE"
             android:exported="true"
-            android:permission="cf.playhi.freezeyou.permission.ENABLE_APPLICATIONS"
+            android:permission="${applicationId}.permission.ENABLE_APPLICATIONS"
             android:process=":backgroundService" />
         <provider
             android:name=".export.Freeze"
-            android:authorities="cf.playhi.freezeyou.export.FREEZE"
+            android:authorities="${applicationId}.export.FREEZE"
             android:exported="true"
-            android:permission="cf.playhi.freezeyou.permission.DISABLE_APPLICATIONS"
+            android:permission="${applicationId}.permission.DISABLE_APPLICATIONS"
             android:process=":backgroundService" />
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="cf.playhi.freezeyou.fileprovider"
+            android:authorities="${applicationId}.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
