@@ -70,3 +70,8 @@ android.defaultConfig {
     manifestPlaceholders = [applicationid: applicationId]
 }
 apply from: rootProject.file('signing.gradle')
+apply plugin: 'de.timfreiheit.resourceplaceholders.plugin'
+resourcePlaceholders {
+    files = ['xml-v25/shortcuts.xml']
+}
+
