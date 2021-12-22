@@ -1,5 +1,33 @@
 package cf.playhi.freezeyou;
 
+import static cf.playhi.freezeyou.LauncherShortcutUtils.checkSettingsAndRequestCreateShortcut;
+import static cf.playhi.freezeyou.LauncherShortcutUtils.createShortCut;
+import static cf.playhi.freezeyou.ThemeUtils.getThemeDot;
+import static cf.playhi.freezeyou.ThemeUtils.getThemeFabDotBackground;
+import static cf.playhi.freezeyou.ThemeUtils.getThemeSecondDot;
+import static cf.playhi.freezeyou.ThemeUtils.getUiTheme;
+import static cf.playhi.freezeyou.ThemeUtils.processSetTheme;
+import static cf.playhi.freezeyou.utils.AlertDialogUtils.buildAlertDialog;
+import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getApplicationIcon;
+import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getBitmapFromDrawable;
+import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getGrayBitmap;
+import static cf.playhi.freezeyou.utils.ApplicationInfoUtils.getApplicationInfoFromPkgName;
+import static cf.playhi.freezeyou.utils.ApplicationLabelUtils.getApplicationLabel;
+import static cf.playhi.freezeyou.utils.ClipboardUtils.copyToClipboard;
+import static cf.playhi.freezeyou.utils.FUFUtils.askRun;
+import static cf.playhi.freezeyou.utils.FUFUtils.processFreezeAction;
+import static cf.playhi.freezeyou.utils.FUFUtils.processUnfreezeAction;
+import static cf.playhi.freezeyou.utils.FUFUtils.realGetFrozenStatus;
+import static cf.playhi.freezeyou.utils.MoreUtils.processListFilter;
+import static cf.playhi.freezeyou.utils.MoreUtils.requestOpenWebSite;
+import static cf.playhi.freezeyou.utils.OneKeyListUtils.addToOneKeyList;
+import static cf.playhi.freezeyou.utils.OneKeyListUtils.removeFromOneKeyList;
+import static cf.playhi.freezeyou.utils.Support.showChooseActionPopupMenu;
+import static cf.playhi.freezeyou.utils.ToastUtils.showToast;
+import static cf.playhi.freezeyou.utils.VersionUtils.checkUpdate;
+import static cf.playhi.freezeyou.utils.VersionUtils.getVersionCode;
+import static cf.playhi.freezeyou.utils.VersionUtils.isOutdated;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -65,34 +93,6 @@ import cf.playhi.freezeyou.app.FreezeYouBaseActivity;
 import cf.playhi.freezeyou.utils.AccessibilityUtils;
 import cf.playhi.freezeyou.utils.ServiceUtils;
 import cf.playhi.freezeyou.utils.TasksUtils;
-
-import static cf.playhi.freezeyou.LauncherShortcutUtils.checkSettingsAndRequestCreateShortcut;
-import static cf.playhi.freezeyou.LauncherShortcutUtils.createShortCut;
-import static cf.playhi.freezeyou.ThemeUtils.getThemeDot;
-import static cf.playhi.freezeyou.ThemeUtils.getThemeFabDotBackground;
-import static cf.playhi.freezeyou.ThemeUtils.getThemeSecondDot;
-import static cf.playhi.freezeyou.ThemeUtils.getUiTheme;
-import static cf.playhi.freezeyou.ThemeUtils.processSetTheme;
-import static cf.playhi.freezeyou.utils.AlertDialogUtils.buildAlertDialog;
-import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getApplicationIcon;
-import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getBitmapFromDrawable;
-import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getGrayBitmap;
-import static cf.playhi.freezeyou.utils.ApplicationInfoUtils.getApplicationInfoFromPkgName;
-import static cf.playhi.freezeyou.utils.ApplicationLabelUtils.getApplicationLabel;
-import static cf.playhi.freezeyou.utils.ClipboardUtils.copyToClipboard;
-import static cf.playhi.freezeyou.utils.FUFUtils.askRun;
-import static cf.playhi.freezeyou.utils.FUFUtils.processFreezeAction;
-import static cf.playhi.freezeyou.utils.FUFUtils.processUnfreezeAction;
-import static cf.playhi.freezeyou.utils.FUFUtils.realGetFrozenStatus;
-import static cf.playhi.freezeyou.utils.MoreUtils.processListFilter;
-import static cf.playhi.freezeyou.utils.MoreUtils.requestOpenWebSite;
-import static cf.playhi.freezeyou.utils.OneKeyListUtils.addToOneKeyList;
-import static cf.playhi.freezeyou.utils.OneKeyListUtils.removeFromOneKeyList;
-import static cf.playhi.freezeyou.utils.Support.showChooseActionPopupMenu;
-import static cf.playhi.freezeyou.utils.ToastUtils.showToast;
-import static cf.playhi.freezeyou.utils.VersionUtils.checkUpdate;
-import static cf.playhi.freezeyou.utils.VersionUtils.getVersionCode;
-import static cf.playhi.freezeyou.utils.VersionUtils.isOutdated;
 
 public class Main extends FreezeYouBaseActivity {
 
@@ -163,6 +163,7 @@ public class Main extends FreezeYouBaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        runOnUiThread(() -> cc.aoeiuv020.AddNewAppHelper.INSTANCE.checkNew(this));
         if (!shortcutsCompleted && shortcutsCount > 0) {
             String pkgName;
             shortcutsCount = shortcutsCount - 1;
