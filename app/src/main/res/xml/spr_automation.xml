@@ -8,7 +8,7 @@
         app:title="@string/scheduledTasks">
         <intent
             android:targetClass="cf.playhi.freezeyou.ScheduledTasksManageActivity"
-            android:targetPackage="cf.playhi.freezeyou" />
+            android:targetPackage="${applicationId}" />
     </Preference>
     <Preference
         app:iconSpaceReserved="false"
@@ -16,7 +16,7 @@
         app:title="@string/manageUriAutoAllow">
         <intent
             android:targetClass="cf.playhi.freezeyou.UriAutoAllowManageActivity"
-            android:targetPackage="cf.playhi.freezeyou" />
+            android:targetPackage="${applicationId}" />
     </Preference>
     <Preference
         app:iconSpaceReserved="false"

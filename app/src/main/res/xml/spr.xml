@@ -77,7 +77,7 @@
         app:title="@string/autoDiagnosis">
         <intent
             android:targetClass="cf.playhi.freezeyou.AutoDiagnosisActivity"
-            android:targetPackage="cf.playhi.freezeyou" />
+            android:targetPackage="${applicationId}" />
     </Preference>
 
     <Preference
@@ -113,7 +113,7 @@
         app:title="@string/about">
         <intent
             android:targetClass="cf.playhi.freezeyou.AboutActivity"
-            android:targetPackage="cf.playhi.freezeyou" />
+            android:targetPackage="${applicationId}" />
     </Preference>
 
 </PreferenceScreen>

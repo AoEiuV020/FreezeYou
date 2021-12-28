@@ -16,7 +16,7 @@
         <intent
             android:data="Uninstall"
             android:targetClass="cf.playhi.freezeyou.Uninstall"
-            android:targetPackage="cf.playhi.freezeyou" />
+            android:targetPackage="${applicationId}" />
     </Preference>
     <Preference
         app:iconSpaceReserved="false"

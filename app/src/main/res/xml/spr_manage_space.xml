@@ -8,7 +8,7 @@
         app:title="@string/manageMyCustomization">
         <intent
             android:targetClass="cf.playhi.freezeyou.UserDefinedListsManageActivity"
-            android:targetPackage="cf.playhi.freezeyou" />
+            android:targetPackage="${applicationId}" />
     </Preference>
     <Preference
         app:iconSpaceReserved="false"

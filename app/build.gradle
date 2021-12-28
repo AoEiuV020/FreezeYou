@@ -72,6 +72,18 @@ android.defaultConfig {
 apply from: rootProject.file('signing.gradle')
 apply plugin: 'de.timfreiheit.resourceplaceholders.plugin'
 resourcePlaceholders {
-    files = ['xml-v25/shortcuts.xml']
+    files = [
+        'xml-v25/shortcuts.xml',
+        'xml/first_time_setup_pr.xml',
+        'xml/shortcuts.xml',
+        'xml/spr.xml',
+        'xml/spr_advance.xml',
+        'xml/spr_automation.xml',
+        'xml/spr_danger_zone.xml',
+        'xml/spr_fuf.xml',
+        'xml/spr_manage_space.xml',
+        'xml/spr_notification_fuf.xml'
+    ]
+    
 }
 

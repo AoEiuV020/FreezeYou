@@ -78,7 +78,7 @@
         app:title="@string/manageUriAutoAllow">
         <intent
             android:targetClass="cf.playhi.freezeyou.UriAutoAllowManageActivity"
-            android:targetPackage="cf.playhi.freezeyou" />
+            android:targetPackage="${applicationId}" />
     </Preference>
 
 </PreferenceScreen>
