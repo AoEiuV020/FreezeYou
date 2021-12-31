@@ -28,7 +28,7 @@ object AddNewAppHelper {
         Thread {
             val existsList = load()
             val allList =
-                ctx.packageManager.getInstalledPackages(PackageManager.GET_UNINSTALLED_PACKAGES)
+                ctx.packageManager.getInstalledPackages(0)
                     .map {
                         val name = ApplicationLabelUtils.getApplicationLabel(
                             ctx,
@@ -42,6 +42,9 @@ object AddNewAppHelper {
                 removeAll(existsList)
             }
             if (newList.isEmpty()) {
+                if (allList.size() != existsList.size()) {
+                    save(allList)
+                }
                 return@Thread
             }
             val nameList = newList.map { it.name }.toTypedArray()
