@@ -5,7 +5,6 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
 import cf.playhi.freezeyou.R
 import cf.playhi.freezeyou.utils.AlertDialogUtils
 import cf.playhi.freezeyou.utils.ApplicationLabelUtils
@@ -38,8 +37,13 @@ object AddNewAppHelper {
                         )
                         AppInfo(name, it.packageName)
                     }
-            val newList: List<AppInfo> = allList.toMutableList().apply {
-                removeAll(existsList)
+
+            val newList: List<AppInfo> = allList.filter {
+                !OneKeyListUtils.existsInOneKeyList(
+                    ctx,
+                    ctx.getString(R.string.sAutoFreezeApplicationList),
+                    it.applicationId
+                ) && !existsList.contains(it)
             }
             if (newList.isEmpty()) {
                 if (allList.size != existsList.size) {
