@@ -42,7 +42,7 @@ object AddNewAppHelper {
                 removeAll(existsList)
             }
             if (newList.isEmpty()) {
-                if (allList.size() != existsList.size()) {
+                if (allList.size != existsList.size) {
                     save(allList)
                 }
                 return@Thread
