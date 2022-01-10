@@ -22,6 +22,6 @@ public class OneKeyFreeze extends FreezeYouBaseActivity {
                     new Intent(getApplicationContext(), OneKeyFreezeService.class)
                             .putExtra("autoCheckAndLockScreen", getIntent().getBooleanExtra("autoCheckAndLockScreen", true)));
         }
-        finish();
+        getWindow().getDecorView().postDelayed(this::finish, 0);
     }
 }
