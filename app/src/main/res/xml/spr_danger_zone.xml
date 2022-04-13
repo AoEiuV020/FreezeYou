@@ -15,9 +15,15 @@
         app:title="@string/disableMRootMode">
         <intent
             android:data="Uninstall"
-            android:targetClass="cf.playhi.freezeyou.Uninstall"
-            android:targetPackage="${applicationId}" />
+            android:targetClass="cf.playhi.freezeyou.ui.UninstallActivity"
+            android:targetPackage="cc.aoeiuv020.freezeyou" />
     </Preference>
+    <Preference
+        app:iconSpaceReserved="false"
+        app:key="selfRevokeProfileOwner"
+        app:singleLineTitle="false"
+        app:summary="@string/selfRevokeProfileOwnerSummary"
+        app:title="@string/selfRevokeProfileOwner" />
     <Preference
         app:iconSpaceReserved="false"
         app:key="uninstall"

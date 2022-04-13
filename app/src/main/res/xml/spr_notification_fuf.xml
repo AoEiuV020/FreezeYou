@@ -35,8 +35,8 @@
         app:singleLineTitle="false"
         app:title="@string/manageQuickFUFNoti">
         <intent
-            android:targetClass="cf.playhi.freezeyou.FUFNotificationsManageActivity"
-            android:targetPackage="${applicationId}" />
+            android:targetClass="cf.playhi.freezeyou.ui.FUFNotificationsManageActivity"
+            android:targetPackage="cc.aoeiuv020.freezeyou" />
     </Preference>
 
 </PreferenceScreen>

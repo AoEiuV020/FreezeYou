@@ -132,8 +132,8 @@
             app:singleLineTitle="false"
             app:title="@string/moreSettings">
             <intent
-                android:targetClass="cf.playhi.freezeyou.SettingsActivity"
-                android:targetPackage="${applicationId}" />
+                android:targetClass="cf.playhi.freezeyou.ui.SettingsActivity"
+                android:targetPackage="cc.aoeiuv020.freezeyou" />
         </Preference>
     </PreferenceCategory>
 

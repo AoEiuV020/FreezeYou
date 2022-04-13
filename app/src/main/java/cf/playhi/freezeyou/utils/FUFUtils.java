@@ -10,17 +10,15 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.service.notification.StatusBarNotification;
 
-import net.grandcentrix.tray.AppPreferences;
-
 import java.io.DataOutputStream;
 
-import cf.playhi.freezeyou.AskRunActivity;
 import cf.playhi.freezeyou.DeviceAdminReceiver;
-import cf.playhi.freezeyou.FUFService;
 import cf.playhi.freezeyou.MainApplication;
 import cf.playhi.freezeyou.MyNotificationListenerService;
 import cf.playhi.freezeyou.R;
 import cf.playhi.freezeyou.fuf.FUFSinglePackage;
+import cf.playhi.freezeyou.service.FUFService;
+import cf.playhi.freezeyou.ui.AskRunActivity;
 
 import static cf.playhi.freezeyou.fuf.FUFSinglePackage.ACTION_MODE_FREEZE;
 import static cf.playhi.freezeyou.fuf.FUFSinglePackage.ACTION_MODE_UNFREEZE;
@@ -31,17 +29,26 @@ import static cf.playhi.freezeyou.fuf.FUFSinglePackage.API_FREEZEYOU_ROOT_UNHIDE
 import static cf.playhi.freezeyou.fuf.FUFSinglePackage.ERROR_DEVICE_ANDROID_VERSION_TOO_LOW;
 import static cf.playhi.freezeyou.fuf.FUFSinglePackage.ERROR_DPM_EXECUTE_FAILED_FROM_SYSTEM;
 import static cf.playhi.freezeyou.fuf.FUFSinglePackage.ERROR_NOT_DEVICE_POLICY_MANAGER;
+import static cf.playhi.freezeyou.fuf.FUFSinglePackage.ERROR_NOT_PROFILE_OWNER;
 import static cf.playhi.freezeyou.fuf.FUFSinglePackage.ERROR_NOT_SYSTEM_APP;
 import static cf.playhi.freezeyou.fuf.FUFSinglePackage.ERROR_NO_ERROR_CAUGHT_UNKNOWN_RESULT;
 import static cf.playhi.freezeyou.fuf.FUFSinglePackage.ERROR_NO_ERROR_SUCCESS;
 import static cf.playhi.freezeyou.fuf.FUFSinglePackage.ERROR_NO_ROOT_PERMISSION;
 import static cf.playhi.freezeyou.fuf.FUFSinglePackage.ERROR_NO_SUCH_API_MODE;
 import static cf.playhi.freezeyou.fuf.FUFSinglePackage.ERROR_OTHER;
+import static cf.playhi.freezeyou.fuf.FUFSinglePackage.ERROR_PROFILE_OWNER_EXECUTE_FAILED_FROM_SYSTEM;
 import static cf.playhi.freezeyou.fuf.FUFSinglePackage.ERROR_SINGLE_PACKAGE_NAME_IS_BLANK;
+import static cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageBooleanKeys.avoidFreezeForegroundApplications;
+import static cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageBooleanKeys.avoidFreezeNotifyingApplications;
+import static cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageBooleanKeys.createQuickFUFNotiAfterUnfrozen;
+import static cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageBooleanKeys.lesserToast;
+import static cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageBooleanKeys.openImmediately;
 import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getApplicationIcon;
 import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getBitmapFromDrawable;
 import static cf.playhi.freezeyou.utils.ApplicationInfoUtils.getApplicationInfoFromPkgName;
 import static cf.playhi.freezeyou.utils.DevicePolicyManagerUtils.getDevicePolicyManager;
+import static cf.playhi.freezeyou.utils.DevicePolicyManagerUtils.isDeviceOwner;
+import static cf.playhi.freezeyou.utils.DevicePolicyManagerUtils.isProfileOwner;
 import static cf.playhi.freezeyou.utils.NotificationUtils.createFUFQuickNotification;
 import static cf.playhi.freezeyou.utils.NotificationUtils.deleteNotification;
 import static cf.playhi.freezeyou.utils.ProcessUtils.destroyProcess;
@@ -55,7 +62,7 @@ import static cf.playhi.freezeyou.utils.ToastUtils.showToast;
 public final class FUFUtils {
 
     public static void askRun(final Context context, final String pkgName, String target, String tasks, final boolean runImmediately, Activity activity, boolean finish) {
-        if (runImmediately || (new AppPreferences(context).getBoolean("openImmediately", false))) {
+        if (runImmediately || openImmediately.getValue(null)) {
             checkAndStartApp(context, pkgName, target, tasks, activity, finish);
         } else {
             if (!context.getString(R.string.onlyUnfreeze).equals(target)) {
@@ -157,11 +164,11 @@ public final class FUFUtils {
     public static int checkAndExecuteAction(Context context, String pkgName, int apiMode, int actionMode) {
         int returnValue = 999;
         String currentPackage = " ";
-        if (new AppPreferences(context).getBoolean("avoidFreezeForegroundApplications", false)) {
+        if (avoidFreezeForegroundApplications.getValue(null)) {
             currentPackage = MainApplication.getCurrentPackage();
         }
         if (currentPackage == null) currentPackage = " ";
-        if ((!"cf.playhi.freezeyou".equals(pkgName))) {
+        if ((!"cc.aoeiuv020.freezeyou".equals(pkgName))) {
             if (actionMode == ACTION_MODE_FREEZE &&
                     isAvoidFreezeNotifyingApplicationsEnabledAndAppStillNotifying(context, pkgName)) {
                 checkAndShowAppStillNotifyingToast(context, pkgName);
@@ -215,8 +222,7 @@ public final class FUFUtils {
             boolean disableModeTrueOrHideModeFalse) {
         if (pkgNameList != null) {
             String currentPackage = " ";
-            if (new AppPreferences(context)
-                    .getBoolean("avoidFreezeForegroundApplications", false)) {
+            if (avoidFreezeForegroundApplications.getValue(null)) {
                 currentPackage = MainApplication.getCurrentPackage();
             }
             if (currentPackage == null) currentPackage = " ";
@@ -227,7 +233,7 @@ public final class FUFUtils {
                 outputStream = new DataOutputStream(process.getOutputStream());
                 if (freeze) {
                     for (String aPkgNameList : pkgNameList) {
-                        if ((!"cf.playhi.freezeyou".equals(aPkgNameList))) {
+                        if ((!"cc.aoeiuv020.freezeyou".equals(aPkgNameList))) {
                             if (isAvoidFreezeNotifyingApplicationsEnabledAndAppStillNotifying(context, aPkgNameList)) {
                                 checkAndShowAppStillNotifyingToast(context, aPkgNameList);
                             } else if (currentPackage.equals(aPkgNameList)) {
@@ -286,7 +292,7 @@ public final class FUFUtils {
                             checkAndCreateFUFQuickNotification(context, aPkgNameList);
                         }
                     }
-                    if (!(new AppPreferences(context).getBoolean("lesserToast", false))) {
+                    if (!lesserToast.getValue(null)) {
                         showToast(context, R.string.executed);
                     }
                 } else {
@@ -324,7 +330,7 @@ public final class FUFUtils {
                 if (pkgNameList != null) {
                     for (String aPkgName : pkgNameList) {
                         try {
-                            if ((!"cf.playhi.freezeyou".equals(aPkgName)) &&
+                            if ((!"cc.aoeiuv020.freezeyou".equals(aPkgName)) &&
                                     (apiMode != API_FREEZEYOU_LEGACY_AUTO && apiMode != API_FREEZEYOU_MROOT_DPM) ||
                                     !freeze || !checkMRootFrozen(context, aPkgName)) {
                                 if (!processAction(context, aPkgName, apiMode, !freeze, false)) {
@@ -337,7 +343,7 @@ public final class FUFUtils {
                         }
                     }
                     sendStatusChangedBroadcast(context);
-                    if (!(new AppPreferences(context).getBoolean("lesserToast", false))) {
+                    if (!lesserToast.getValue(null)) {
                         showToast(context, R.string.executed);
                     }
                 }
@@ -348,7 +354,7 @@ public final class FUFUtils {
     public static void sendStatusChangedBroadcast(Context context) {
         Intent intent = new Intent();
         intent.setAction("cf.playhi.freezeyou.action.packageStatusChanged");
-        intent.setPackage("cf.playhi.freezeyou");
+        intent.setPackage("cc.aoeiuv020.freezeyou");
         context.sendBroadcast(intent);
     }
 
@@ -369,7 +375,7 @@ public final class FUFUtils {
 
     public static boolean isAvoidFreezeNotifyingApplicationsEnabledAndAppStillNotifying(Context context, String pkgName) {
         if (Build.VERSION.SDK_INT >= 21) {
-            return new AppPreferences(context).getBoolean("avoidFreezeNotifyingApplications", false) && isAppStillNotifying(pkgName);
+            return avoidFreezeNotifyingApplications.getValue(null) && isAppStillNotifying(pkgName);
         } else {
             return false;
         }
@@ -434,7 +440,10 @@ public final class FUFUtils {
 
     public static boolean checkMRootFrozen(Context context, String pkgName) {
         try {
-            return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && DevicePolicyManagerUtils.isDeviceOwner(context) && getDevicePolicyManager(context).isApplicationHidden(DeviceAdminReceiver.getComponentName(context), pkgName);
+            return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+                    && (isDeviceOwner(context) || isProfileOwner(context))
+                    && getDevicePolicyManager(context)
+                    .isApplicationHidden(DeviceAdminReceiver.getComponentName(context), pkgName);
         } catch (Exception e) {
             return false;
         }
@@ -491,8 +500,7 @@ public final class FUFUtils {
     }
 
     public static void checkAndCreateFUFQuickNotification(Context context, String pkgName) {
-        if (new AppPreferences(context)
-                .getBoolean("createQuickFUFNotiAfterUnfrozen", true)) {
+        if (createQuickFUFNotiAfterUnfrozen.getValue(null)) {
             createFUFQuickNotification(
                     context, pkgName, R.drawable.ic_notification,
                     getBitmapFromDrawable(
@@ -537,12 +545,17 @@ public final class FUFUtils {
                         context, context.getString(R.string.noRootPermission));
                 return false;
             case ERROR_DPM_EXECUTE_FAILED_FROM_SYSTEM:
+            case ERROR_PROFILE_OWNER_EXECUTE_FAILED_FROM_SYSTEM:
                 showPreProcessFUFResultAndShowToastAndReturnIfResultBelongsSuccess(
                         context, context.getString(R.string.executeFailedFromSystem));
                 return false;
             case ERROR_NOT_DEVICE_POLICY_MANAGER:
                 showPreProcessFUFResultAndShowToastAndReturnIfResultBelongsSuccess(
                         context, context.getString(R.string.isNotDevicePolicyManager));
+                return false;
+            case ERROR_NOT_PROFILE_OWNER:
+                showPreProcessFUFResultAndShowToastAndReturnIfResultBelongsSuccess(
+                        context, context.getString(R.string.isNotProfileOwner));
                 return false;
             case ERROR_NO_SUCH_API_MODE:
                 showPreProcessFUFResultAndShowToastAndReturnIfResultBelongsSuccess(

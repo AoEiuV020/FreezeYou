@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.PowerManager;
 
+import androidx.annotation.Nullable;
+
 import java.io.DataOutputStream;
 
 import cf.playhi.freezeyou.DeviceAdminReceiver;
@@ -67,11 +69,18 @@ public final class DevicePolicyManagerUtils {
     }
 
     public static boolean isDeviceOwner(Context context) {
-        return Build.VERSION.SDK_INT >= 18 && getDevicePolicyManager(context).isDeviceOwnerApp(context.getPackageName());
+        return Build.VERSION.SDK_INT >= 18
+                && getDevicePolicyManager(context).isDeviceOwnerApp(context.getPackageName());
     }
 
-    public static void checkAndSetOrganizationName(Context context, String name) {
+    public static boolean isProfileOwner(Context context) {
+        return Build.VERSION.SDK_INT >= 21
+                && getDevicePolicyManager(context).isProfileOwnerApp(context.getPackageName());
+    }
+
+    public static void checkAndSetOrganizationName(Context context, @Nullable String name) {
         if (Build.VERSION.SDK_INT >= 24 && isDeviceOwner(context))
-            getDevicePolicyManager(context).setOrganizationName(DeviceAdminReceiver.getComponentName(context), name);
+            getDevicePolicyManager(context).setOrganizationName(
+                    DeviceAdminReceiver.getComponentName(context), name);
     }
 }

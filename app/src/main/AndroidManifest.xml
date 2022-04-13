@@ -3,50 +3,80 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="cf.playhi.freezeyou">
 
-    <uses-sdk tools:overrideLibrary="net.grandcentrix.tray" />
+    <uses-feature
+        android:name="android.hardware.bluetooth"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.wifi"
+        android:required="false" />
 
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" /> <!-- 开关蓝牙 -->
-    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" /> <!-- 开关蓝牙 -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" /> <!-- 开关蓝牙 -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" /> <!-- 开关蓝牙 -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
     <uses-permission android:name="android.permission.INSTALL_SHORTCUT" /> <!-- 安装快捷方式 -->
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" /> <!-- 安装快捷方式 -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" /> <!-- 部分奇怪的设备需要这个权限才能开关WIFI -->
-    <uses-permission android:name="android.permission.MODIFY_PHONE_STATE" /> <!-- 开关移动数据，需 pri app -->
-    <uses-permission android:name="android.permission.CHANGE_COMPONENT_ENABLED_STATE" />
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <uses-permission
+        android:name="android.permission.MODIFY_PHONE_STATE"
+        tools:ignore="ProtectedPermissions" /> <!-- 开关移动数据，需 pri app -->
+    <uses-permission
+        android:name="android.permission.CHANGE_COMPONENT_ENABLED_STATE"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <permission
-        android:name="${applicationId}.permission.GET_DISABLED_APPLICATIONS"
+        android:name="cc.aoeiuv020.freezeyou.permission.GET_DISABLED_APPLICATIONS"
         android:description="@string/getDisabledApplications"
         android:icon="@drawable/ic_notification"
         android:label="@string/getDisabledApplications"
         android:protectionLevel="normal" />
     <permission
-        android:name="${applicationId}.permission.ENABLE_APPLICATIONS"
+        android:name="cc.aoeiuv020.freezeyou.permission.ENABLE_APPLICATIONS"
         android:description="@string/enableApplications"
         android:icon="@drawable/ic_notification"
         android:label="@string/enableApplications"
         android:protectionLevel="dangerous" />
     <permission
-        android:name="${applicationId}.permission.DISABLE_APPLICATIONS"
+        android:name="cc.aoeiuv020.freezeyou.permission.DISABLE_APPLICATIONS"
         android:description="@string/disableApplications"
         android:icon="@drawable/ic_notification"
         android:label="@string/disableApplications"
         android:protectionLevel="dangerous" />
     <permission
-        android:name="${applicationId}.permission.QUERY_STATUS"
+        android:name="cc.aoeiuv020.freezeyou.permission.QUERY_STATUS"
         android:description="@string/queryStatus"
         android:icon="@drawable/ic_notification"
         android:label="@string/queryStatus"
         android:protectionLevel="normal" />
+    <permission
+        android:name="cf.playhi.freezeyou.permission.GET_BACKUP_DATA"
+        android:description="@string/getBackupData"
+        android:icon="@drawable/ic_notification"
+        android:label="@string/getBackupData"
+        android:protectionLevel="signature" />
 
     <application
         android:name=".MainApplication"
@@ -63,7 +93,7 @@
             android:icon="@mipmap/ic_launcher_new_round"
             android:launchMode="singleTask"
             android:roundIcon="@mipmap/ic_launcher_new_round"
-            android:theme="@style/AppTheme.Dark.Default"
+            android:theme="@style/AppTheme.SplashScreen"
             android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -100,7 +130,7 @@
             android:label="自冻·鱼"
             android:launchMode="singleTask"
             android:targetActivity=".Main"
-            android:theme="@style/AppTheme.Dark.Default">
+            android:theme="@style/AppTheme.SplashScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
@@ -122,7 +152,7 @@
             android:label="自冻·鱼"
             android:launchMode="singleTask"
             android:targetActivity=".Main"
-            android:theme="@style/AppTheme.Dark.Default">
+            android:theme="@style/AppTheme.SplashScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
@@ -145,7 +175,7 @@
             android:launchMode="singleTask"
             android:roundIcon="@mipmap/ic_launcher_new_round"
             android:targetActivity=".Main"
-            android:theme="@style/AppTheme.Dark.Default">
+            android:theme="@style/AppTheme.SplashScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
@@ -228,12 +258,12 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ManualMode"
+            android:name=".ui.ManualModeActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:label="@string/manualMode"
             android:theme="@style/AppTheme.Dark.Default" />
         <activity
-            android:name=".UriFreezeActivity"
+            android:name=".ui.UriFreezeActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:excludeFromRecents="true"
             android:exported="true"
@@ -270,6 +300,13 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".ui.ScheduledTasksManageActivity"
+            android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
+            android:exported="true"
+            android:icon="@drawable/ic_shortcut_access_alarm"
+            android:label="@string/scheduledTasks"
+            android:theme="@style/AppTheme.Dark.Default" />
+        <activity
             android:name=".InstallPackagesActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:enabled="false"
@@ -299,11 +336,20 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ScheduledTasksAddActivity"
+            android:name=".ui.InstallPackagesActivity"
+            android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:label="@string/installAndUninstall"
+            android:launchMode="singleInstance"
+            android:process=":installAndUninstall"
+            android:theme="@style/AppTheme.Dark.Dialog.Default" />
+        <activity
+            android:name=".ui.ScheduledTasksAddActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:theme="@style/AppTheme.Dark.Default" />
         <activity
-            android:name=".SettingsActivity"
+            android:name=".ui.SettingsActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:exported="true"
             android:label="@string/moreSettings"
@@ -315,70 +361,70 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Uninstall"
+            android:name=".ui.UninstallActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:theme="@android:style/Theme.DeviceDefault.Dialog.NoActionBar" />
         <activity
-            android:name=".AboutActivity"
+            android:name=".ui.AboutActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:label="@string/about"
             android:theme="@style/AppTheme.Dark.Default" />
         <activity
-            android:name=".FirstTimeSetupActivity"
+            android:name=".ui.FirstTimeSetupActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:theme="@style/AppTheme.Dark.Default" />
         <activity
-            android:name=".AutoDiagnosisActivity"
+            android:name=".ui.AutoDiagnosisActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:label="@string/autoDiagnosis"
             android:theme="@style/AppTheme.Dark.Default" />
         <activity
-            android:name=".ShowLogcatActivity"
+            android:name=".ui.ShowLogcatActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:label="@string/showLogcat"
             android:theme="@style/AppTheme.Dark.Default" />
         <activity
-            android:name=".FUFNotificationsManageActivity"
+            android:name=".ui.FUFNotificationsManageActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:label="@string/manageQuickFUFNoti"
             android:theme="@style/AppTheme.Dark.Default" />
         <activity
-            android:name=".UserDefinedListsManageActivity"
+            android:name=".ui.UserDefinedListsManageActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:label="@string/manageMyCustomization"
             android:theme="@style/AppTheme.Dark.Default" />
         <activity
-            android:name=".UriAutoAllowManageActivity"
+            android:name=".ui.UriAutoAllowManageActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:label="@string/manageUriAutoAllow"
             android:theme="@style/AppTheme.Dark.Default" />
         <activity
-            android:name=".SelectShortcutIconActivity"
+            android:name=".ui.SelectShortcutIconActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:label="@string/createLauncherShortcut"
             android:theme="@style/AppTheme.Dark.Default" />
         <activity
-            android:name=".BackupMainActivity"
+            android:name=".ui.BackupMainActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:label="@string/backupAndRestore"
             android:theme="@style/AppTheme.Dark.Default"
             android:windowSoftInputMode="stateHidden" />
         <activity
-            android:name=".FullScreenImageViewerActivity"
+            android:name=".ui.FullScreenImageViewerActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:theme="@style/AppTheme.Dark.Default" />
         <activity
-            android:name=".SelectTargetActivityActivity"
+            android:name=".ui.SelectTargetActivityActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:label="@string/plsSelect"
             android:theme="@style/AppTheme.Dark.Default" />
         <activity
-            android:name=".BackupImportChooserActivity"
+            android:name=".ui.BackupImportChooserActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:label="@string/impt"
             android:theme="@style/AppTheme.Dark.Default" />
         <activity
-            android:name=".LauncherShortcutConfirmAndGenerateActivity"
+            android:name=".ui.LauncherShortcutConfirmAndGenerateActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:exported="true"
             android:label="@string/createLauncherShortcut"
@@ -390,20 +436,20 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".AskLockScreenActivity"
+            android:name=".ui.AskLockScreenActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:excludeFromRecents="true"
             android:label="@string/askIfLockScreen"
             android:launchMode="singleInstance"
             android:theme="@style/AppTheme.Dark.Dialog.Default" />
         <activity
-            android:name=".AskRunActivity"
+            android:name=".ui.AskRunActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"
             android:theme="@style/AppTheme.Dark.Dialog.Default" />
         <activity
-            android:name=".ShowSimpleDialogActivity"
+            android:name=".ui.ShowSimpleDialogActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"
@@ -413,21 +459,21 @@
             android:excludeFromRecents="true"
             android:exported="true"
             android:launchMode="singleInstance"
-            android:permission="${applicationId}.permission.GET_DISABLED_APPLICATIONS"
+            android:permission="cc.aoeiuv020.freezeyou.permission.GET_DISABLED_APPLICATIONS"
             android:theme="@style/AppTheme.Translucent.NoTitleBar" />
         <activity
             android:name=".DisableApplications"
             android:excludeFromRecents="true"
             android:exported="true"
             android:launchMode="singleInstance"
-            android:permission="${applicationId}.permission.DISABLE_APPLICATIONS"
+            android:permission="cc.aoeiuv020.freezeyou.permission.DISABLE_APPLICATIONS"
             android:theme="@style/AppTheme.Translucent.NoTitleBar" />
         <activity
             android:name=".EnableApplications"
             android:excludeFromRecents="true"
             android:exported="true"
             android:launchMode="singleInstance"
-            android:permission="${applicationId}.permission.ENABLE_APPLICATIONS"
+            android:permission="cc.aoeiuv020.freezeyou.permission.ENABLE_APPLICATIONS"
             android:theme="@style/AppTheme.Translucent.NoTitleBar" />
         <activity
             android:name=".OneKeyScreenLockImmediatelyActivity"
@@ -450,7 +496,16 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".FUFLauncherShortcutCreator"
+            android:name=".ui.OneKeyScreenLockImmediatelyActivity"
+            android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:icon="@drawable/screenlock"
+            android:label="@string/oneKeyLockScreen"
+            android:launchMode="singleInstance"
+            android:theme="@style/AppTheme.Translucent.NoTitleBar" />
+        <activity
+            android:name=".ui.FUFLauncherShortcutCreator"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:excludeFromRecents="true"
             android:label="@string/disableAEnable"
@@ -470,12 +525,20 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".CommandExecutorActivity"
+            android:name=".ui.ShortcutLauncherFolderActivity"
+            android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:label="@string/folder"
+            android:launchMode="singleInstance"
+            android:theme="@style/AppTheme.Dark.Dialog.Default" />
+        <activity
+            android:name=".ui.CommandExecutorActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:label="@string/commandExecutionTool"
             android:theme="@style/AppTheme.Dark.Default" />
         <activity
-            android:name=".AppLockActivity"
+            android:name=".ui.AppLockActivity"
             android:configChanges="orientation|screenLayout|smallestScreenSize|screenSize|keyboard|keyboardHidden|mcc|mnc|navigation"
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"
@@ -496,7 +559,7 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".SecretCodeReceiver"
+            android:name=".receiver.SecretCodeReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
@@ -508,7 +571,7 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".UninstallReceiver"
+            android:name=".receiver.UninstallReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
@@ -518,7 +581,7 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".PackageReplacedReceiver"
+            android:name=".receiver.PackageReplacedReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
@@ -528,7 +591,7 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".LocaleChangedReceiver"
+            android:name=".receiver.LocaleChangedReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
@@ -536,7 +599,7 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".BootCompletedReceiver"
+            android:name=".receiver.BootCompletedReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
@@ -550,18 +613,18 @@
             android:name=".receiver.NotificationDeletedReceiver"
             android:exported="false" />
         <receiver
-            android:name=".InstallPackagesFinishedReceiver"
+            android:name=".receiver.InstallPackagesFinishedReceiver"
             android:exported="false" />
         <receiver
-            android:name=".TasksNeedExecuteReceiver"
+            android:name=".receiver.TasksNeedExecuteReceiver"
             android:exported="false" />
 
         <service
-            android:name=".ScreenLockOneKeyFreezeService"
+            android:name=".service.ScreenLockOneKeyFreezeService"
             android:exported="false"
             android:process=":backgroundService" />
         <service
-            android:name=".InstallPackagesService"
+            android:name=".service.InstallPackagesService"
             android:exported="false"
             android:process=":backgroundService" />
         <service
@@ -623,22 +686,22 @@
             </intent-filter>
         </service>
         <service
-            android:name=".OneKeyFreezeService"
+            android:name=".service.OneKeyFreezeService"
             android:exported="false"
             android:label="@string/oneKeyFreeze"
             android:process=":backgroundService" />
         <service
-            android:name=".OneKeyUFService"
+            android:name=".service.OneKeyUFService"
             android:exported="false"
             android:label="@string/oneKeyUF"
             android:process=":backgroundService" />
         <service
-            android:name=".FUFService"
+            android:name=".service.FUFService"
             android:exported="false"
             android:label="@string/freezeAUF"
             android:process=":backgroundService" />
         <service
-            android:name=".ForceStopService"
+            android:name=".service.ForceStopService"
             android:exported="false"
             android:label="@string/forceStop"
             android:process=":backgroundService" />
@@ -655,31 +718,40 @@
 
         <provider
             android:name=".export.Query"
-            android:authorities="${applicationId}.export.QUERY"
+            android:authorities="cc.aoeiuv020.freezeyou.export.QUERY"
             android:exported="true"
-            android:permission="${applicationId}.permission.QUERY_STATUS"
+            android:permission="cc.aoeiuv020.freezeyou.permission.QUERY_STATUS"
             android:process=":backgroundService" />
         <provider
             android:name=".export.Unfreeze"
-            android:authorities="${applicationId}.export.UNFREEZE"
+            android:authorities="cc.aoeiuv020.freezeyou.export.UNFREEZE"
             android:exported="true"
-            android:permission="${applicationId}.permission.ENABLE_APPLICATIONS"
+            android:permission="cc.aoeiuv020.freezeyou.permission.ENABLE_APPLICATIONS"
             android:process=":backgroundService" />
         <provider
             android:name=".export.Freeze"
-            android:authorities="${applicationId}.export.FREEZE"
+            android:authorities="cc.aoeiuv020.freezeyou.export.FREEZE"
             android:exported="true"
-            android:permission="${applicationId}.permission.DISABLE_APPLICATIONS"
+            android:permission="cc.aoeiuv020.freezeyou.permission.DISABLE_APPLICATIONS"
             android:process=":backgroundService" />
         <provider
+            android:name=".export.GetBackupData"
+            android:authorities="cc.aoeiuv020.freezeyou.export.GetBackupData"
+            android:exported="true"
+            android:permission="cf.playhi.freezeyou.permission.GET_BACKUP_DATA" />
+        <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.fileprovider"
+            android:authorities="cc.aoeiuv020.freezeyou.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+        <provider
+            android:name="com.tencent.mmkv.MMKVContentProvider"
+            android:authorities="cc.aoeiuv020.freezeyou.MMKVContentProvider"
+            android:exported="false" />
     </application>
 
 </manifest>

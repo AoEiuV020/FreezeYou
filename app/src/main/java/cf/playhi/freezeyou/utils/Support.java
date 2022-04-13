@@ -15,11 +15,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Build;
-import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.util.Base64;
 import android.util.DisplayMetrics;
-import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
 import android.widget.EditText;
@@ -32,13 +30,16 @@ import java.util.Locale;
 
 import cf.playhi.freezeyou.ForceStop;
 import cf.playhi.freezeyou.Freeze;
-import cf.playhi.freezeyou.InstallPackagesActivity;
 import cf.playhi.freezeyou.R;
+import cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageStringKeys;
+import cf.playhi.freezeyou.ui.InstallPackagesActivity;
 
-import static cf.playhi.freezeyou.LauncherShortcutUtils.checkSettingsAndRequestCreateShortcut;
+import static cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageBooleanKeys.freezeOnceQuit;
+import static cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageBooleanKeys.openAndUFImmediately;
 import static cf.playhi.freezeyou.utils.AlertDialogUtils.buildAlertDialog;
 import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getApplicationIcon;
 import static cf.playhi.freezeyou.utils.ClipboardUtils.copyToClipboard;
+import static cf.playhi.freezeyou.utils.LauncherShortcutUtils.checkSettingsAndRequestCreateShortcut;
 import static cf.playhi.freezeyou.utils.OneKeyListUtils.addToOneKeyList;
 import static cf.playhi.freezeyou.utils.OneKeyListUtils.existsInOneKeyList;
 import static cf.playhi.freezeyou.utils.OneKeyListUtils.removeFromOneKeyList;
@@ -86,7 +87,7 @@ public final class Support {
     }
 
     public static void shortcutMakeDialog(Context context, String title, String message, final Activity activity, final ApplicationInfo applicationInfo, final String pkgName, String target, String tasks, int ot, boolean auto, boolean finish) {
-        if (new AppPreferences(context).getBoolean("openAndUFImmediately", false) && auto) {
+        if (openAndUFImmediately.getValue(null) && auto) {
             if (ot == 2) {
                 FUFUtils.checkAndStartApp(context, pkgName, target, tasks, activity, finish);
             } else {
@@ -109,10 +110,8 @@ public final class Support {
                             oneKeyName,
                             pkgName) ? R.string.added : R.string.addFailed);
             if (context.getString(R.string.sFreezeOnceQuit).equals(oneKeyName)) {
-                SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-                if (!preferences.getBoolean("freezeOnceQuit", false)) {
-                    preferences.edit().putBoolean("freezeOnceQuit", true).apply();
-                    new AppPreferences(context).put("freezeOnceQuit", true);
+                if (!freezeOnceQuit.getValue(null)) {
+                    freezeOnceQuit.setValue(null, true);
                 }
                 AccessibilityUtils.checkAndRequestIfAccessibilitySettingsOff(context);
             }
@@ -149,9 +148,9 @@ public final class Support {
         Cursor cursor = vmUserDefinedDb.query("categories", new String[]{"label", "_id", "packages"}, null, null, null, null, null);
         if (cursor.moveToFirst()) {
             for (int i = 0; i < cursor.getCount(); i++) {
-                int id = cursor.getInt(cursor.getColumnIndex("_id"));
-                String title = cursor.getString(cursor.getColumnIndex("label"));
-                userDefinedCategoriesHashMap.put(id, cursor.getString(cursor.getColumnIndex("packages")));
+                int id = cursor.getInt(cursor.getColumnIndexOrThrow("_id"));
+                String title = cursor.getString(cursor.getColumnIndexOrThrow("label"));
+                userDefinedCategoriesHashMap.put(id, cursor.getString(cursor.getColumnIndexOrThrow("packages")));
                 vmUserDefinedSubMenu.add(R.id.main_sca_menu_userDefined_menuGroup, id, id, new String(Base64.decode(title, Base64.DEFAULT)));
                 cursor.moveToNext();
             }
@@ -186,172 +185,180 @@ public final class Support {
             popup.getMenu().removeItem(R.id.main_sca_menu_removeFromTheList);
         }
 
-        popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getGroupId()) {
-                    case R.id.main_sca_menu_userDefined_menuGroup:
-                        switch (item.getItemId()) {
-                            case R.id.main_sca_menu_userDefined_newClassification:
-                                final EditText vmUserDefinedNameAlertDialogEditText = new EditText(activity);
-                                AlertDialog.Builder vmUserDefinedNameAlertDialog = new AlertDialog.Builder(activity);
-                                vmUserDefinedNameAlertDialog.setTitle(R.string.label);
-                                vmUserDefinedNameAlertDialog.setView(vmUserDefinedNameAlertDialogEditText);
-                                vmUserDefinedNameAlertDialog.setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        String label = Base64.encodeToString(vmUserDefinedNameAlertDialogEditText.getText().toString().getBytes(), Base64.DEFAULT);
-                                        if ("".equals(label)) {
-                                            showToast(activity, R.string.emptyNotAllowed);
-                                        } else {
-                                            boolean alreadyExists = false;
-                                            SQLiteDatabase vmUserDefinedDb = context.openOrCreateDatabase("userDefinedCategories", Context.MODE_PRIVATE, null);
-                                            vmUserDefinedDb.execSQL(
-                                                    "create table if not exists categories(_id integer primary key autoincrement,label varchar,packages varchar)"
-                                            );
-                                            Cursor cursor = vmUserDefinedDb.query("categories", new String[]{"label"}, null, null, null, null, null);
-                                            if (cursor.moveToFirst()) {
-                                                for (int i = 0; i < cursor.getCount(); i++) {
-                                                    if (label.equals(cursor.getString(cursor.getColumnIndex("label")))) {
-                                                        alreadyExists = true;
-                                                        break;
-                                                    }
-                                                    cursor.moveToNext();
-                                                }
-                                            }
-                                            cursor.close();
-                                            if (alreadyExists) {
-                                                showToast(activity, R.string.alreadyExist);
-                                            } else {
-                                                vmUserDefinedDb.execSQL(
-                                                        "replace into categories(_id,label,packages) VALUES ( "
-                                                                + null + ",'"
-                                                                + label + "','')"
-                                                );
-                                            }
-                                            vmUserDefinedDb.close();
-                                        }
-                                    }
-                                });
-                                vmUserDefinedNameAlertDialog.setNegativeButton(R.string.cancel, null);
-                                vmUserDefinedNameAlertDialog.show();
-                                break;
-                            default:
-                                int itemId = item.getItemId();
-                                if (userDefinedCategoriesHashMap.containsKey(itemId)) {
-                                    SQLiteDatabase vmUserDefinedDb = context.openOrCreateDatabase("userDefinedCategories", Context.MODE_PRIVATE, null);
-                                    vmUserDefinedDb.execSQL(
-                                            "create table if not exists categories(_id integer primary key autoincrement,label varchar,packages varchar)"
-                                    );
-                                    String pkgs = userDefinedCategoriesHashMap.get(itemId);
-                                    if (pkgs == null) {
-                                        pkgs = "";
-                                    }
-                                    boolean existed = existsInOneKeyList(pkgs, pkgName);
-                                    if (existed) {
-                                        pkgs = pkgs.replace(pkgName + ",", "");
+        popup.setOnMenuItemClickListener(item -> {
+            switch (item.getGroupId()) {
+                case R.id.main_sca_menu_userDefined_menuGroup:
+                    switch (item.getItemId()) {
+                        case R.id.main_sca_menu_userDefined_newClassification:
+                            final EditText vmUserDefinedNameAlertDialogEditText = new EditText(activity);
+                            AlertDialog.Builder vmUserDefinedNameAlertDialog = new AlertDialog.Builder(activity);
+                            vmUserDefinedNameAlertDialog.setTitle(R.string.label);
+                            vmUserDefinedNameAlertDialog.setView(vmUserDefinedNameAlertDialogEditText);
+                            vmUserDefinedNameAlertDialog.setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    String label = Base64.encodeToString(vmUserDefinedNameAlertDialogEditText.getText().toString().getBytes(), Base64.DEFAULT);
+                                    if ("".equals(label)) {
+                                        showToast(activity, R.string.emptyNotAllowed);
                                     } else {
-                                        pkgs = pkgs + pkgName + ",";
-                                    }
-                                    vmUserDefinedDb.execSQL(
-                                            "UPDATE categories SET packages = '"
-                                                    + pkgs
-                                                    + "' WHERE _id = "
-                                                    + itemId
-                                                    + ";"
-                                    );
-                                    vmUserDefinedDb.close();
-                                    showToast(activity, existed ? R.string.removed : R.string.added);
-                                }
-                                break;
-                        }
-                    default:
-                        switch (item.getItemId()) {
-                            case R.id.main_sca_menu_forceStop:
-                                if (!(context.getString(R.string.notAvailable).equals(name))) {
-                                    context.startActivity(new Intent(context, ForceStop.class).putExtra("pkgName", pkgName));
-                                }
-                                break;
-                            case R.id.main_sca_menu_addToFreezeOnceQuit:
-                                Support.checkAddOrRemove(context, FreezeOnceQuitPkgNames, pkgName, context.getString(R.string.sFreezeOnceQuit));
-                                break;
-                            case R.id.main_sca_menu_addToOneKeyList:
-                                Support.checkAddOrRemove(context, pkgNames, pkgName, context.getString(R.string.sAutoFreezeApplicationList));
-                                break;
-                            case R.id.main_sca_menu_addToOneKeyUFList:
-                                Support.checkAddOrRemove(context, UFPkgNames, pkgName, context.getString(R.string.sOneKeyUFApplicationList));
-                                break;
-                            case R.id.main_sca_menu_appDetail:
-                                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                                Uri uri = Uri.fromParts("package", pkgName, null);
-                                intent.setData(uri);
-                                try {
-                                    context.startActivity(intent);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                    showToast(context, e.getLocalizedMessage());
-                                }
-                                break;
-                            case R.id.main_sca_menu_copyPkgName:
-                                showToast(context, copyToClipboard(context, pkgName) ? R.string.success : R.string.failed);
-                                break;
-                            case R.id.main_sca_menu_disableAEnable:
-                                if (!(context.getString(R.string.notAvailable).equals(name))) {
-                                    context.startActivity(new Intent(context, Freeze.class).putExtra("pkgName", pkgName).putExtra("auto", false));
-                                }
-                                break;
-                            case R.id.main_sca_menu_createDisEnableShortCut:
-                                checkSettingsAndRequestCreateShortcut(
-                                        name,
-                                        pkgName,
-                                        getApplicationIcon(
-                                                context,
-                                                pkgName,
-                                                ApplicationInfoUtils.getApplicationInfoFromPkgName(pkgName, context),
-                                                false),
-                                        Freeze.class,
-                                        "FreezeYou! " + pkgName,
-                                        context);
-                                break;
-                            case R.id.main_sca_menu_removeFromTheList:
-                                if (folderPkgListSp != null) {
-                                    String folderPkgs = folderPkgListSp.getString("pkgS", "");
-                                    if (existsInOneKeyList(folderPkgs, pkgName)) {
-                                        folderPkgListSp.edit()
-                                                .putString("pkgS", folderPkgs.replace(pkgName + ",", ""))
-                                                .apply();
+                                        boolean alreadyExists = false;
+                                        SQLiteDatabase vmUserDefinedDb1 = context.openOrCreateDatabase("userDefinedCategories", Context.MODE_PRIVATE, null);
+                                        vmUserDefinedDb1.execSQL(
+                                                "create table if not exists categories(_id integer primary key autoincrement,label varchar,packages varchar)"
+                                        );
+                                        Cursor cursor1 = vmUserDefinedDb1.query("categories", new String[]{"label"}, null, null, null, null, null);
+                                        if (cursor1.moveToFirst()) {
+                                            for (int i = 0; i < cursor1.getCount(); i++) {
+                                                if (label.equals(cursor1.getString(cursor1.getColumnIndexOrThrow("label")))) {
+                                                    alreadyExists = true;
+                                                    break;
+                                                }
+                                                cursor1.moveToNext();
+                                            }
+                                        }
+                                        cursor1.close();
+                                        if (alreadyExists) {
+                                            showToast(activity, R.string.alreadyExist);
+                                        } else {
+                                            vmUserDefinedDb1.execSQL(
+                                                    "replace into categories(_id,label,packages) VALUES ( "
+                                                            + null + ",'"
+                                                            + label + "','')"
+                                            );
+                                        }
+                                        vmUserDefinedDb1.close();
                                     }
                                 }
-                                break;
-                            case R.id.main_sca_menu_uninstall:
-                                if (!(context.getString(R.string.notAvailable).equals(name)) &&
-                                        context.getPackageManager()
-                                                .getComponentEnabledSetting(
-                                                        new ComponentName("cf.playhi.freezeyou", "cf.playhi.freezeyou.InstallPackagesActivity"))
-                                                == PackageManager.COMPONENT_ENABLED_STATE_ENABLED) {
-                                    activity.startActivity(
-                                            new Intent(
-                                                    Intent.ACTION_DELETE,
-                                                    Uri.parse("package:" + pkgName),
-                                                    activity,
-                                                    InstallPackagesActivity.class)
-
-                                    );
+                            });
+                            vmUserDefinedNameAlertDialog.setNegativeButton(R.string.cancel, null);
+                            vmUserDefinedNameAlertDialog.show();
+                            break;
+                        default:
+                            int itemId = item.getItemId();
+                            if (userDefinedCategoriesHashMap.containsKey(itemId)) {
+                                SQLiteDatabase vmUserDefinedDb1 = context.openOrCreateDatabase("userDefinedCategories", Context.MODE_PRIVATE, null);
+                                vmUserDefinedDb1.execSQL(
+                                        "create table if not exists categories(_id integer primary key autoincrement,label varchar,packages varchar)"
+                                );
+                                String pkgs = userDefinedCategoriesHashMap.get(itemId);
+                                if (pkgs == null) {
+                                    pkgs = "";
+                                }
+                                boolean existed = existsInOneKeyList(pkgs, pkgName);
+                                if (existed) {
+                                    pkgs = pkgs.replace(pkgName + ",", "");
                                 } else {
-                                    activity.startActivity(
-                                            new Intent(
-                                                    Intent.ACTION_DELETE,
-                                                    Uri.parse("package:" + pkgName)
-                                            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    );
+                                    pkgs = pkgs + pkgName + ",";
                                 }
-                                break;
-                            default:
-                                break;
-                        }
-                }
-                return true;
+                                vmUserDefinedDb1.execSQL(
+                                        "UPDATE categories SET packages = '"
+                                                + pkgs
+                                                + "' WHERE _id = "
+                                                + itemId
+                                                + ";"
+                                );
+                                vmUserDefinedDb1.close();
+                                showToast(activity, existed ? R.string.removed : R.string.added);
+                            }
+                            break;
+                    }
+                default:
+                    switch (item.getItemId()) {
+                        case R.id.main_sca_menu_forceStop:
+                            if (!(context.getString(R.string.notAvailable).equals(name))) {
+                                context.startActivity(new Intent(context, ForceStop.class).putExtra("pkgName", pkgName));
+                            }
+                            break;
+                        case R.id.main_sca_menu_addToFreezeOnceQuit:
+                            Support.checkAddOrRemove(context, FreezeOnceQuitPkgNames, pkgName, context.getString(R.string.sFreezeOnceQuit));
+                            break;
+                        case R.id.main_sca_menu_addToOneKeyList:
+                            Support.checkAddOrRemove(context, pkgNames, pkgName, context.getString(R.string.sAutoFreezeApplicationList));
+                            break;
+                        case R.id.main_sca_menu_addToOneKeyUFList:
+                            Support.checkAddOrRemove(context, UFPkgNames, pkgName, context.getString(R.string.sOneKeyUFApplicationList));
+                            break;
+                        case R.id.main_sca_menu_appDetail:
+                            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                            Uri uri = Uri.fromParts("package", pkgName, null);
+                            intent.setData(uri);
+                            try {
+                                context.startActivity(intent);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                showToast(context, e.getLocalizedMessage());
+                            }
+                            break;
+                        case R.id.main_sca_menu_copyPkgName:
+                            showToast(context, copyToClipboard(context, pkgName) ? R.string.success : R.string.failed);
+                            break;
+                        case R.id.main_sca_menu_disableAEnable:
+                            if (!(context.getString(R.string.notAvailable).equals(name))) {
+                                context.startActivity(new Intent(context, Freeze.class).putExtra("pkgName", pkgName).putExtra("auto", false));
+                            }
+                            break;
+                        case R.id.main_sca_menu_createDisEnableShortCut:
+                            checkSettingsAndRequestCreateShortcut(
+                                    name,
+                                    pkgName,
+                                    getApplicationIcon(
+                                            context,
+                                            pkgName,
+                                            ApplicationInfoUtils.getApplicationInfoFromPkgName(pkgName, context),
+                                            false),
+                                    Freeze.class,
+                                    "FreezeYou! " + pkgName,
+                                    context);
+                            break;
+                        case R.id.main_sca_menu_removeFromTheList:
+                            if (folderPkgListSp != null) {
+                                String folderPkgs = folderPkgListSp.getString("pkgS", "");
+                                if (existsInOneKeyList(folderPkgs, pkgName)) {
+                                    folderPkgListSp.edit()
+                                            .putString("pkgS", folderPkgs.replace(pkgName + ",", ""))
+                                            .apply();
+                                }
+                            }
+                            break;
+                        case R.id.main_sca_menu_gotoStore:
+                            Intent gotoStoreIntent =
+                                    new Intent(
+                                            Intent.ACTION_VIEW,
+                                            Uri.parse("market://details/?id=" + pkgName));
+                            String title = activity.getString(R.string.plsSelect);
+                            Intent chooser = Intent.createChooser(gotoStoreIntent, title);
+                            if (gotoStoreIntent.resolveActivity(activity.getPackageManager()) != null) {
+                                activity.startActivity(chooser);
+                            }
+                            break;
+                        case R.id.main_sca_menu_uninstall:
+                            if (!(context.getString(R.string.notAvailable).equals(name)) &&
+                                    context.getPackageManager()
+                                            .getComponentEnabledSetting(
+                                                    new ComponentName("cc.aoeiuv020.freezeyou", "cf.playhi.freezeyou.InstallPackagesActivity"))
+                                            == PackageManager.COMPONENT_ENABLED_STATE_ENABLED) {
+                                activity.startActivity(
+                                        new Intent(
+                                                Intent.ACTION_DELETE,
+                                                Uri.parse("package:" + pkgName),
+                                                activity,
+                                                InstallPackagesActivity.class)
+
+                                );
+                            } else {
+                                activity.startActivity(
+                                        new Intent(
+                                                Intent.ACTION_DELETE,
+                                                Uri.parse("package:" + pkgName)
+                                        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                );
+                            }
+                            break;
+                        default:
+                            break;
+                    }
             }
+            return true;
         });
 
         return popup;
@@ -371,22 +378,24 @@ public final class Support {
         resources.updateConfiguration(config, dm);
     }
 
-    private static Locale getLocal(Context context) {
-        String s = PreferenceManager.getDefaultSharedPreferences(context).getString("languagePref", "Default");
+    public static String getLocalString(Context context) {
+        String s = DefaultMultiProcessMMKVStorageStringKeys.languagePref.getValue(null);
 
         if (s == null) {
             s = "Default";
         }
 
-        switch (s) {
+        return s;
+    }
+
+    private static Locale getLocal(Context context) {
+        switch (getLocalString(context)) {
+            case "en":
+                return new Locale("en");
             case "en-US":
                 return new Locale("en", "US");
-            case "ru":
-                return new Locale("ru");
             case "ru-RU":
                 return new Locale("ru", "RU");
-            case "uk":
-                return new Locale("uk");
             case "uk-UA":
                 return new Locale("uk", "UA");
             case "zh-CN":

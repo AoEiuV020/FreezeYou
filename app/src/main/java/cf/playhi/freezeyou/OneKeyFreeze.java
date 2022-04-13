@@ -4,8 +4,11 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import cf.playhi.freezeyou.app.FreezeYouBaseActivity;
+import cf.playhi.freezeyou.service.OneKeyFreezeService;
 import cf.playhi.freezeyou.utils.ServiceUtils;
 
+// Needs to be retained for compatibility
+// with old FreezeYou structures and settings.
 public class OneKeyFreeze extends FreezeYouBaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {

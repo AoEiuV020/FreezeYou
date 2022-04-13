@@ -378,6 +378,13 @@
     <string name="alphabetical">Alphabetical</string>
     <string name="refresh">Refresh</string>
     <string name="themeOfAutoSwitchDarkMode">Interface style of auto switch dark mode</string>
+    <string name="bluetoothPermissionIsNotGranted">Related Bluetooth permission is not granted</string>
+    <string name="mayCannotUseScheduledTaskToEnableOrDisableBluetooth">May cannot use the scheduled task to enable or disable Bluetooth</string>
+    <string name="gotoStore">Go to the store</string>
+    <string name="selfRevokeProfileOwner">Release profile owner permission</string>
+    <string name="selfRevokeProfileOwnerSummary">If the profile owner is set, we need to release it before uninstalling the application.</string>
+    <string name="isNotProfileOwner">Is not profile owner</string>
+    <string name="getBackupData">Get backup data</string>
     <string-array name="launchModeSelection">
         <item>Show All</item>
         <item>Frozen only</item>
@@ -439,6 +446,7 @@
     </string-array>
     <string-array name="selectFUFModeSelection">
         <item>No-root (DPM Mode)</item>
+        <item>No-root (Profile Owner Mode)</item>
         <item>ROOT (Hide Mode)</item>
         <item>ROOT (Disable Mode)</item>
         <item>Legacy (Auto DPM or Disable Mode)</item>

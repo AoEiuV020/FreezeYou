@@ -1,6 +1,5 @@
 package cf.playhi.freezeyou.utils;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -15,22 +14,24 @@ import android.provider.Settings;
 
 import net.grandcentrix.tray.AppPreferences;
 
-import cf.playhi.freezeyou.FUFService;
+import cf.playhi.freezeyou.service.FUFService;
 import cf.playhi.freezeyou.Freeze;
 import cf.playhi.freezeyou.R;
 import cf.playhi.freezeyou.receiver.NotificationDeletedReceiver;
 
+import static cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageBooleanKeys.notificationBarDisableClickDisappear;
+import static cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageBooleanKeys.notificationBarDisableSlideOut;
+import static cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageBooleanKeys.notificationBarFreezeImmediately;
 import static cf.playhi.freezeyou.utils.ApplicationLabelUtils.getApplicationLabel;
 import static cf.playhi.freezeyou.utils.ToastUtils.showToast;
 
 public final class NotificationUtils {
 
-    @SuppressLint("ApplySharedPref")
     public static void createFUFQuickNotification(Context context, String pkgName, int iconResId, Bitmap bitmap) {
 
-        AppPreferences preferenceManager = new AppPreferences(context);
-        boolean notificationBarFreezeImmediately = preferenceManager.getBoolean("notificationBarFreezeImmediately", true);
-        String description = notificationBarFreezeImmediately ? context.getString(R.string.freezeImmediately) : context.getString(R.string.disableAEnable);
+        boolean freezeImmediately = notificationBarFreezeImmediately.getValue(null);
+        String description = freezeImmediately ?
+                context.getString(R.string.freezeImmediately) : context.getString(R.string.disableAEnable);
         Notification.Builder mBuilder = new Notification.Builder(context);
         int mId = pkgName.hashCode();
         String name = getApplicationLabel(context, null, null, pkgName);
@@ -39,11 +40,15 @@ public final class NotificationUtils {
             mBuilder.setLargeIcon(bitmap);
             mBuilder.setContentTitle(name);
             mBuilder.setContentText(description);
-            mBuilder.setAutoCancel(!preferenceManager.getBoolean("notificationBarDisableClickDisappear", true));
-            mBuilder.setOngoing(preferenceManager.getBoolean("notificationBarDisableSlideOut", false));
+            mBuilder.setAutoCancel(!notificationBarDisableClickDisappear.getValue(null));
+            mBuilder.setOngoing(notificationBarDisableSlideOut.getValue(null));
 
             Intent intent = new Intent(context, NotificationDeletedReceiver.class).putExtra("pkgName", pkgName);
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, mId, intent, 0);
+            PendingIntent pendingIntent =
+                    PendingIntent.getBroadcast(context, mId, intent,
+                            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                                    ? PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                                    : PendingIntent.FLAG_UPDATE_CURRENT);
             mBuilder.setDeleteIntent(pendingIntent);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -61,21 +66,31 @@ public final class NotificationUtils {
             // Create an Intent for the activity you want to start
             Intent resultIntent;
             PendingIntent resultPendingIntent;
-            if (notificationBarFreezeImmediately) {
+            if (freezeImmediately) {
                 resultIntent = new Intent(context, FUFService.class)
                         .putExtra("pkgName", pkgName)
                         .putExtra("single", true)
                         .putExtra("freeze", true);
-                resultPendingIntent = PendingIntent.getService(context, mId, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                resultPendingIntent =
+                        PendingIntent.getService(
+                                context, mId, resultIntent,
+                                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                                        ? PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                                        : PendingIntent.FLAG_UPDATE_CURRENT);
             } else {
                 resultIntent = new Intent(context, Freeze.class).putExtra("pkgName", pkgName).putExtra("auto", false);
-                resultPendingIntent = PendingIntent.getActivity(context, mId, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                resultPendingIntent =
+                        PendingIntent.getActivity(
+                                context, mId, resultIntent,
+                                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                                        ? PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                                        : PendingIntent.FLAG_UPDATE_CURRENT);
             }
             mBuilder.setContentIntent(resultPendingIntent);
             NotificationManager mNotificationManager =
                     (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             if (mNotificationManager != null) {
-                mNotificationManager.notify(mId, mBuilder.getNotification());
+                mNotificationManager.notify(mId, mBuilder.build());
                 AppPreferences appPreferences = new AppPreferences(context);
                 String notifying = appPreferences.getString("notifying", "");
                 if (notifying != null && !notifying.contains(pkgName + ",")) {

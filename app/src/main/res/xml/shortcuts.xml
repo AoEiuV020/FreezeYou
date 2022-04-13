@@ -10,7 +10,7 @@
         <intent
             android:action="android.intent.action.VIEW"
             android:targetClass="cf.playhi.freezeyou.Main"
-            android:targetPackage="${applicationId}" />
+            android:targetPackage="cc.aoeiuv020.freezeyou" />
         <!-- If your shortcut is associated with multiple intents, include them
              here. The last intent in the list determines what the user sees when
              they launch this shortcut. -->
@@ -27,7 +27,7 @@
         <intent
             android:action="android.intent.action.VIEW"
             android:targetClass="cf.playhi.freezeyou.OneKeyFreeze"
-            android:targetPackage="${applicationId}" />
+            android:targetPackage="cc.aoeiuv020.freezeyou" />
         <!-- If your shortcut is associated with multiple intents, include them
              here. The last intent in the list determines what the user sees when
              they launch this shortcut. -->
@@ -43,7 +43,7 @@
         <intent
             android:action="android.intent.action.VIEW"
             android:targetClass="cf.playhi.freezeyou.OneKeyUF"
-            android:targetPackage="${applicationId}" />
+            android:targetPackage="cc.aoeiuv020.freezeyou" />
         <!-- If your shortcut is associated with multiple intents, include them
              here. The last intent in the list determines what the user sees when
              they launch this shortcut. -->
@@ -58,8 +58,8 @@
         android:shortcutShortLabel="@string/scheduledTasks">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetClass="cf.playhi.freezeyou.ScheduledTasksManageActivity"
-            android:targetPackage="${applicationId}" />
+            android:targetClass="cf.playhi.freezeyou.ui.ScheduledTasksManageActivity"
+            android:targetPackage="cc.aoeiuv020.freezeyou" />
         <!-- If your shortcut is associated with multiple intents, include them
              here. The last intent in the list determines what the user sees when
              they launch this shortcut. -->

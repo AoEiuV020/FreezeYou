@@ -5,7 +5,7 @@
     <CheckBoxPreference
         app:defaultValue="false"
         app:iconSpaceReserved="false"
-        app:key="debugModeEnabled"
+        app:key="DebugModeEnabled"
         app:singleLineTitle="false"
         app:title="@string/debugMode" />
     <EditTextPreference
@@ -28,21 +28,21 @@
         app:title="@string/manualMode">
         <intent
             android:data="ManualMode"
-            android:targetClass="cf.playhi.freezeyou.ManualMode"
-            android:targetPackage="${applicationId}" />
+            android:targetClass="cf.playhi.freezeyou.ui.ManualModeActivity"
+            android:targetPackage="cc.aoeiuv020.freezeyou" />
     </Preference>
     <Preference
         app:iconSpaceReserved="false"
         app:singleLineTitle="false"
         app:title="@string/showLogcat">
         <intent
-            android:targetClass="cf.playhi.freezeyou.ShowLogcatActivity"
-            android:targetPackage="${applicationId}" />
+            android:targetClass="cf.playhi.freezeyou.ui.ShowLogcatActivity"
+            android:targetPackage="cc.aoeiuv020.freezeyou" />
     </Preference>
     <!--        <Preference app:title="@string/commandExecutionTool">-->
     <!--            <intent-->
     <!--                app:targetClass="cf.playhi.freezeyou.CommandExecutorActivity"-->
-    <!--                app:targetPackage="cf.playhi.freezeyou" />-->
+    <!--                app:targetPackage="cc.aoeiuv020.freezeyou" />-->
     <!--        </Preference>-->
 
 </PreferenceScreen>

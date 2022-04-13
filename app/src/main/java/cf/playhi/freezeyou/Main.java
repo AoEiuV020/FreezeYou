@@ -1,12 +1,13 @@
 package cf.playhi.freezeyou;
 
-import static cf.playhi.freezeyou.LauncherShortcutUtils.checkSettingsAndRequestCreateShortcut;
-import static cf.playhi.freezeyou.LauncherShortcutUtils.createShortCut;
-import static cf.playhi.freezeyou.ThemeUtils.getThemeDot;
-import static cf.playhi.freezeyou.ThemeUtils.getThemeFabDotBackground;
-import static cf.playhi.freezeyou.ThemeUtils.getThemeSecondDot;
-import static cf.playhi.freezeyou.ThemeUtils.getUiTheme;
-import static cf.playhi.freezeyou.ThemeUtils.processSetTheme;
+import static cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageBooleanKeys.lesserToast;
+import static cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageBooleanKeys.showInRecents;
+import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageBooleanKeys.cacheApplicationsIcons;
+import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageBooleanKeys.noCaution;
+import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageBooleanKeys.saveOnClickFunctionStatus;
+import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageBooleanKeys.saveSortMethodStatus;
+import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageStringKeys.launchMode;
+import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageStringKeys.mainActivityPattern;
 import static cf.playhi.freezeyou.utils.AlertDialogUtils.buildAlertDialog;
 import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getApplicationIcon;
 import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getBitmapFromDrawable;
@@ -18,11 +19,18 @@ import static cf.playhi.freezeyou.utils.FUFUtils.askRun;
 import static cf.playhi.freezeyou.utils.FUFUtils.processFreezeAction;
 import static cf.playhi.freezeyou.utils.FUFUtils.processUnfreezeAction;
 import static cf.playhi.freezeyou.utils.FUFUtils.realGetFrozenStatus;
+import static cf.playhi.freezeyou.utils.LauncherShortcutUtils.checkSettingsAndRequestCreateShortcut;
+import static cf.playhi.freezeyou.utils.LauncherShortcutUtils.createShortCut;
 import static cf.playhi.freezeyou.utils.MoreUtils.processListFilter;
 import static cf.playhi.freezeyou.utils.MoreUtils.requestOpenWebSite;
 import static cf.playhi.freezeyou.utils.OneKeyListUtils.addToOneKeyList;
 import static cf.playhi.freezeyou.utils.OneKeyListUtils.removeFromOneKeyList;
 import static cf.playhi.freezeyou.utils.Support.showChooseActionPopupMenu;
+import static cf.playhi.freezeyou.utils.ThemeUtils.getThemeDot;
+import static cf.playhi.freezeyou.utils.ThemeUtils.getThemeFabDotBackground;
+import static cf.playhi.freezeyou.utils.ThemeUtils.getThemeSecondDot;
+import static cf.playhi.freezeyou.utils.ThemeUtils.getUiTheme;
+import static cf.playhi.freezeyou.utils.ThemeUtils.processSetTheme;
 import static cf.playhi.freezeyou.utils.ToastUtils.showToast;
 import static cf.playhi.freezeyou.utils.VersionUtils.checkUpdate;
 import static cf.playhi.freezeyou.utils.VersionUtils.getVersionCode;
@@ -68,6 +76,7 @@ import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -89,11 +98,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import cf.playhi.freezeyou.adapter.MainAppListSimpleAdapter;
 import cf.playhi.freezeyou.app.FreezeYouBaseActivity;
+import cf.playhi.freezeyou.service.FUFService;
+import cf.playhi.freezeyou.service.ForceStopService;
+import cf.playhi.freezeyou.ui.AboutActivity;
+import cf.playhi.freezeyou.ui.BackupMainActivity;
+import cf.playhi.freezeyou.ui.FirstTimeSetupActivity;
+import cf.playhi.freezeyou.ui.OneKeyScreenLockImmediatelyActivity;
+import cf.playhi.freezeyou.ui.ScheduledTasksManageActivity;
+import cf.playhi.freezeyou.ui.SettingsActivity;
+import cf.playhi.freezeyou.ui.ShortcutLauncherFolderActivity;
+import cf.playhi.freezeyou.ui.fragment.MainActivityAppListFragment;
 import cf.playhi.freezeyou.utils.AccessibilityUtils;
+import cf.playhi.freezeyou.utils.LauncherShortcutUtils;
 import cf.playhi.freezeyou.utils.ServiceUtils;
 import cf.playhi.freezeyou.utils.TasksUtils;
 
+// Needs to be retained for compatibility
+// with old FreezeYou structures and settings.
 public class Main extends FreezeYouBaseActivity {
 
     private final static int APPListViewOnClickMode_chooseAction = 0;
@@ -184,10 +207,10 @@ public class Main extends FreezeYouBaseActivity {
         }
         updateFrozenStatus();
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        if (sharedPref.getBoolean("saveOnClickFunctionStatus", false)) {
+        if (sharedPref.getBoolean(saveOnClickFunctionStatus.name(), saveOnClickFunctionStatus.defaultValue())) {
             appListViewOnClickMode = sharedPref.getInt("onClickFunctionStatus", APPListViewOnClickMode_chooseAction);
         }
-        if (sharedPref.getBoolean("saveSortMethodStatus", true)) {
+        if (sharedPref.getBoolean(saveSortMethodStatus.name(), saveSortMethodStatus.defaultValue())) {
             currentSortRule = sharedPref.getInt("sortMethodStatus", SORT_BY_DEFAULT);
         }
     }
@@ -223,13 +246,16 @@ public class Main extends FreezeYouBaseActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(@NonNull Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu, menu);
-        String cTheme = getUiTheme(this);
-        if ("white".equals(cTheme) || "default".equals(cTheme)) {
-            menu.findItem(R.id.menu_timedTasks).setIcon(R.drawable.ic_action_alarm_light);
-            menu.findItem(R.id.menu_more).setIcon(R.drawable.ic_action_more_light);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            String cTheme = getUiTheme(this);
+            if ("white".equals(cTheme) || "default".equals(cTheme)) {
+                menu.findItem(R.id.menu_timedTasks).setIcon(R.drawable.ic_action_alarm_light);
+                menu.findItem(R.id.menu_viewMode).setIcon(R.drawable.ic_action_filter_light);
+                menu.findItem(R.id.menu_sortBy).setIcon(R.drawable.ic_action_sort_light);
+            }
         }
         return true;
     }
@@ -314,8 +340,7 @@ public class Main extends FreezeYouBaseActivity {
             main_loading_progress_textView.setVisibility(View.VISIBLE);
             appListFragmentContainer.setVisibility(View.GONE);
             main_loading_progress_textView.setText(R.string.loadingPkgList);
-            if (PreferenceManager.getDefaultSharedPreferences(applicationContext)
-                    .getBoolean("noCaution", false)) {
+            if (noCaution.getValue(applicationContext)) {
                 mainCautionTextView.setVisibility(View.GONE);
             }
         });
@@ -331,9 +356,7 @@ public class Main extends FreezeYouBaseActivity {
         PackageManager packageManager = applicationContext.getPackageManager();
         List<PackageInfo> packageInfo = packageManager.getInstalledPackages(PackageManager.GET_UNINSTALLED_PACKAGES);
         int size = packageInfo == null ? 0 : packageInfo.size();
-        boolean saveIconCache =
-                PreferenceManager.getDefaultSharedPreferences(applicationContext)
-                        .getBoolean("cacheApplicationsIcons", false);
+        boolean saveIconCache = cacheApplicationsIcons.getValue(applicationContext);
         switch (filter) {
             case "all":
                 for (int i = 0; i < size; i++) {
@@ -1023,8 +1046,7 @@ public class Main extends FreezeYouBaseActivity {
                                     Main.this, pkgName, null, null,
                                     false, null, false);
                         } else {
-                            if (!(new AppPreferences(Main.this)
-                                    .getBoolean("lesserToast", false))) {
+                            if (!lesserToast.getValue(null)) {
                                 showToast(Main.this, R.string.freezeCompleted);
                             }
                         }
@@ -1035,8 +1057,7 @@ public class Main extends FreezeYouBaseActivity {
                                     Main.this, pkgName, null, null,
                                     false, false, null, false);
                         } else {
-                            if (!(new AppPreferences(Main.this)
-                                    .getBoolean("lesserToast", false))) {
+                            if (!lesserToast.getValue(null)) {
                                 showToast(Main.this, R.string.UFCompleted);
                             }
                         }
@@ -1047,8 +1068,7 @@ public class Main extends FreezeYouBaseActivity {
                                     Main.this, pkgName, null, null,
                                     true, false, null, false);
                         } else {
-                            if (!(new AppPreferences(Main.this)
-                                    .getBoolean("lesserToast", false))) {
+                            if (!lesserToast.getValue(null)) {
                                 showToast(Main.this, R.string.UFCompleted);
                             }
                             askRun(Main.this, pkgName, null,
@@ -1186,41 +1206,31 @@ public class Main extends FreezeYouBaseActivity {
         TasksUtils.checkTriggerTasks(this);
 
         final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(Main.this);
-        if (sharedPref.getBoolean("saveOnClickFunctionStatus", false)) {
+        if (sharedPref.getBoolean(saveOnClickFunctionStatus.name(), saveOnClickFunctionStatus.defaultValue())) {
             appListViewOnClickMode = sharedPref.getInt("onClickFunctionStatus", APPListViewOnClickMode_chooseAction);
         }
-        if (sharedPref.getBoolean("saveSortMethodStatus", true)) {
+        if (sharedPref.getBoolean(saveSortMethodStatus.name(), saveSortMethodStatus.defaultValue())) {
             currentSortRule = sharedPref.getInt("sortMethodStatus", SORT_BY_DEFAULT);
         }
-        if (!sharedPref.getBoolean("noCaution", false)) {
+        if (!sharedPref.getBoolean(noCaution.name(), noCaution.defaultValue())) {
             buildAlertDialog(Main.this, R.mipmap.ic_launcher_new_round, R.string.cautionContent, R.string.caution)
-                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int ii) {
-                        }
+                    .setPositiveButton(android.R.string.ok, (dialogInterface, ii) -> {
                     })
-                    .setNeutralButton(R.string.hToUse, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            requestOpenWebSite(Main.this, "https://www.zidon.net/");
-                        }
-                    })
-                    .setNegativeButton(R.string.nCaution, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            sharedPref.edit().putBoolean("noCaution", true).apply();
-                        }
-                    })
+                    .setNeutralButton(R.string.hToUse, (dialog, which) ->
+                            requestOpenWebSite(Main.this, "https://www.zidon.net/"))
+                    .setNegativeButton(R.string.nCaution, (dialog, which) ->
+                            sharedPref.edit().putBoolean(noCaution.name(), true).apply())
                     .create().show();
         }
 
-        String mainActivityPattern = sharedPref.getString("mainActivityPattern", "default");
-        if ("default".equals(mainActivityPattern)) {
+        String mainPattern =
+                sharedPref.getString(mainActivityPattern.name(), mainActivityPattern.defaultValue());
+        if (mainActivityPattern.defaultValue().equals(mainPattern)) {
             isGridMode =
                     getWindowManager().getDefaultDisplay().getWidth()
                             > getWindowManager().getDefaultDisplay().getHeight() * 1.2;
         } else {
-            isGridMode = "grid".equals(mainActivityPattern);
+            isGridMode = "grid".equals(mainPattern);
         }
         if (mMainActivityAppListFragment == null) {
             mMainActivityAppListFragment = new MainActivityAppListFragment();
@@ -1236,9 +1246,9 @@ public class Main extends FreezeYouBaseActivity {
         initThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                String mode = getIntent().getStringExtra("pkgName");//快捷方式提供
+                String mode = getIntent().getStringExtra("pkgName"); // 快捷方式提供
                 if (mode == null) {
-                    mode = PreferenceManager.getDefaultSharedPreferences(Main.this).getString("launchMode", "all");
+                    mode = launchMode.getValue(Main.this);
                 }
                 if (mode == null) {
                     mode = "";
@@ -1296,7 +1306,7 @@ public class Main extends FreezeYouBaseActivity {
     }
 
     private Map<String, Object> processAppStatus(String name, String packageName, PackageInfo packageInfo, PackageManager packageManager, boolean saveIconCache) {
-        if (!("android".equals(packageName) || "cf.playhi.freezeyou".equals(packageName))) {
+        if (!("android".equals(packageName) || "cc.aoeiuv020.freezeyou".equals(packageName))) {
             Map<String, Object> keyValuePair = new HashMap<>();
             keyValuePair.put(
                     "Img",
@@ -1347,7 +1357,7 @@ public class Main extends FreezeYouBaseActivity {
             } catch (PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
             }
-            if (!("android".equals(aPkg) || "cf.playhi.freezeyou".equals(aPkg) || "".equals(aPkg))) {
+            if (!("android".equals(aPkg) || "cc.aoeiuv020.freezeyou".equals(aPkg) || "".equals(aPkg))) {
                 Map<String, Object> keyValuePair = new HashMap<>();
                 icon = isGridMode && realGetFrozenStatus(this, aPkg, null)
                         ?
@@ -1491,14 +1501,15 @@ public class Main extends FreezeYouBaseActivity {
 
     private void saveOnClickFunctionStatus(int status) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        if (sharedPreferences.getBoolean("saveOnClickFunctionStatus", false)) {
+        if (sharedPreferences.getBoolean(
+                saveOnClickFunctionStatus.name(), saveOnClickFunctionStatus.defaultValue())) {
             sharedPreferences.edit().putInt("onClickFunctionStatus", status).apply();
         }
     }
 
     private void saveSortMethodStatus(int status) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        if (sharedPreferences.getBoolean("saveSortMethodStatus", true)) {
+        if (sharedPreferences.getBoolean(saveSortMethodStatus.name(), saveSortMethodStatus.defaultValue())) {
             sharedPreferences.edit().putInt("sortMethodStatus", status).apply();
         }
     }
@@ -2182,7 +2193,7 @@ public class Main extends FreezeYouBaseActivity {
 
     @Override
     public void finish() {
-        if (Build.VERSION.SDK_INT >= 21 && !(new AppPreferences(this).getBoolean("showInRecents", true))) {
+        if (Build.VERSION.SDK_INT >= 21 && !showInRecents.getValue(null)) {
             finishAndRemoveTask();
         }
         super.finish();

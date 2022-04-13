@@ -7,16 +7,16 @@
         app:singleLineTitle="false"
         app:title="@string/scheduledTasks">
         <intent
-            android:targetClass="cf.playhi.freezeyou.ScheduledTasksManageActivity"
-            android:targetPackage="${applicationId}" />
+            android:targetClass="cf.playhi.freezeyou.ui.ScheduledTasksManageActivity"
+            android:targetPackage="cc.aoeiuv020.freezeyou" />
     </Preference>
     <Preference
         app:iconSpaceReserved="false"
         app:singleLineTitle="false"
         app:title="@string/manageUriAutoAllow">
         <intent
-            android:targetClass="cf.playhi.freezeyou.UriAutoAllowManageActivity"
-            android:targetPackage="${applicationId}" />
+            android:targetClass="cf.playhi.freezeyou.ui.UriAutoAllowManageActivity"
+            android:targetPackage="cc.aoeiuv020.freezeyou" />
     </Preference>
     <Preference
         app:iconSpaceReserved="false"

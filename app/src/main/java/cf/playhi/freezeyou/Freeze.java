@@ -8,11 +8,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 
-import net.grandcentrix.tray.AppPreferences;
-
 import cf.playhi.freezeyou.app.FreezeYouBaseActivity;
 
-import static cf.playhi.freezeyou.ThemeUtils.processSetTheme;
+import static cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageBooleanKeys.showInRecents;
+import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageBooleanKeys.needConfirmWhenFreezeUseShortcutAutoFUF;
+import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageBooleanKeys.openImmediatelyAfterUnfreezeUseShortcutAutoFUF;
+import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageBooleanKeys.shortcutAutoFUF;
 import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getApplicationIcon;
 import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getBitmapFromDrawable;
 import static cf.playhi.freezeyou.utils.ApplicationInfoUtils.getApplicationInfoFromPkgName;
@@ -23,8 +24,11 @@ import static cf.playhi.freezeyou.utils.FUFUtils.processFreezeAction;
 import static cf.playhi.freezeyou.utils.FUFUtils.processUnfreezeAction;
 import static cf.playhi.freezeyou.utils.FUFUtils.realGetFrozenStatus;
 import static cf.playhi.freezeyou.utils.Support.shortcutMakeDialog;
+import static cf.playhi.freezeyou.utils.ThemeUtils.processSetTheme;
 import static cf.playhi.freezeyou.utils.ToastUtils.showToast;
 
+// Needs to be retained for compatibility
+// with old FreezeYou structures and settings.
 public class Freeze extends FreezeYouBaseActivity {
     private Intent mStartedIntent;
     private String mPkgName;
@@ -78,14 +82,20 @@ public class Freeze extends FreezeYouBaseActivity {
             }
 
             SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-            if (mAutoRun && sp.getBoolean("shortcutAutoFUF", false)) {
+            if (mAutoRun && sp.getBoolean(shortcutAutoFUF.name(), shortcutAutoFUF.defaultValue())) {
                 if (realGetFrozenStatus(this, mPkgName, getPackageManager())) {
                     processUnfreezeAction(
                             this, mPkgName, target, tasks, true,
-                            sp.getBoolean("openImmediatelyAfterUnfreezeUseShortcutAutoFUF", true),
+                            sp.getBoolean(
+                                    openImmediatelyAfterUnfreezeUseShortcutAutoFUF.name(),
+                                    openImmediatelyAfterUnfreezeUseShortcutAutoFUF.defaultValue()
+                            ),
                             this, true);
                 } else {
-                    if (sp.getBoolean("needConfirmWhenFreezeUseShortcutAutoFUF", false)) {
+                    if (sp.getBoolean(
+                            needConfirmWhenFreezeUseShortcutAutoFUF.name(),
+                            needConfirmWhenFreezeUseShortcutAutoFUF.defaultValue())
+                    ) {
                         processDialog(mPkgName, target, tasks, false, 2);
                     } else {
                         processFreezeAction(this, mPkgName, target, tasks,
@@ -141,8 +151,7 @@ public class Freeze extends FreezeYouBaseActivity {
 
     @Override
     public void finish() {
-        if (Build.VERSION.SDK_INT >= 21
-                && !(new AppPreferences(this).getBoolean("showInRecents", true))) {
+        if (Build.VERSION.SDK_INT >= 21 && !showInRecents.getValue(null)) {
             finishAndRemoveTask();
         }
         super.finish();

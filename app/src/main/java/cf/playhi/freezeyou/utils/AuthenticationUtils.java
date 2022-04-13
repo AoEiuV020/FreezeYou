@@ -4,17 +4,15 @@ import android.content.Context;
 
 import androidx.biometric.BiometricManager;
 
-import net.grandcentrix.tray.AppPreferences;
-
 import static androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG;
 import static androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK;
 import static androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL;
+import static cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageBooleanKeys.enableAuthentication;
 
 public class AuthenticationUtils {
 
-    public static boolean isAuthenticationEnabled(Context context) {
-        AppPreferences appPreferences = new AppPreferences(context);
-        return appPreferences.getBoolean("enableAuthentication", false);
+    public static boolean isAuthenticationEnabled() {
+        return enableAuthentication.getValue(null);
     }
 
     public static boolean isBiometricPromptPartAvailable(Context context) {

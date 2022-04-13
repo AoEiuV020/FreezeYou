@@ -6,11 +6,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 
-import static cf.playhi.freezeyou.DebugModeUtils.isDebugModeEnabled;
+import static cf.playhi.freezeyou.utils.DebugModeUtils.isDebugModeEnabled;
 import static cf.playhi.freezeyou.utils.DevicePolicyManagerUtils.isDeviceOwner;
 import static cf.playhi.freezeyou.utils.FUFUtils.oneKeyActionMRoot;
 import static cf.playhi.freezeyou.utils.FUFUtils.oneKeyActionRoot;
 
+// Needs to be retained for compatibility
+// with old FreezeYou structures and settings.
 public class DisableApplications extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,7 +22,7 @@ public class DisableApplications extends Activity {
         if (intent != null) {
             String[] packages = intent.getStringArrayExtra("packages");
 
-            if (isDebugModeEnabled(this)) {
+            if (isDebugModeEnabled()) {
                 Log.e("DebugModeLogcat", "Intent toString:" + intent.toString());
                 for (String p : packages) {
                     Log.e("DebugModeLogcat", "Intent packages:" + p);
@@ -38,7 +40,7 @@ public class DisableApplications extends Activity {
                 }
             }
         } else {
-            if (isDebugModeEnabled(this)) {
+            if (isDebugModeEnabled()) {
                 Log.e("DebugModeLogcat", "Intent: null");
             }
         }
