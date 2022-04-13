@@ -10,6 +10,7 @@ import cf.playhi.freezeyou.utils.AlertDialogUtils
 import cf.playhi.freezeyou.utils.ApplicationLabelUtils
 import cf.playhi.freezeyou.utils.OneKeyListUtils
 import cf.playhi.freezeyou.utils.ToastUtils
+import java.lang.Exception
 
 /**
  * Created by AoEiuV020 on 2021.12.23-01:03:20.
@@ -19,63 +20,96 @@ object AddNewAppHelper {
     const val name = "AddNewAppHelper"
     const val key = "exists"
     private lateinit var ctx: Context
+    private var running: Boolean = false
     val sharedPreferences: SharedPreferences
         get() = ctx.getSharedPreferences(name, Context.MODE_PRIVATE)
 
     fun checkNew(activity: Activity) {
         this.ctx = activity.applicationContext
-        Thread {
-            val existsList = load()
-            val allList =
-                ctx.packageManager.getInstalledPackages(0)
-                    .map {
-                        val name = ApplicationLabelUtils.getApplicationLabel(
-                            ctx,
-                            ctx.packageManager,
-                            it.applicationInfo,
-                            it.packageName
-                        )
-                        AppInfo(name, it.packageName)
-                    }
+        if (running) {
+            return
+        }
+        running = true
+        val thread = Thread {
+            try {
+                realCheck(activity)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                running = false
+            }
+        }
+        thread.start()
+    }
 
-            val newList: List<AppInfo> = allList.filter {
-                !OneKeyListUtils.existsInOneKeyList(
-                    ctx,
-                    ctx.getString(R.string.sAutoFreezeApplicationList),
-                    it.applicationId
-                ) && !existsList.contains(it)
-            }
-            if (newList.isEmpty()) {
-                if (allList.size != existsList.size) {
-                    save(allList)
+    private fun realCheck(activity: Activity) {
+        val existsList = load()
+        val allList =
+            ctx.packageManager.getInstalledPackages(0)
+                .map {
+                    val name = ApplicationLabelUtils.getApplicationLabel(
+                        ctx,
+                        ctx.packageManager,
+                        it.applicationInfo,
+                        it.packageName
+                    )
+                    AppInfo(name, it.packageName)
                 }
-                return@Thread
+
+        val newList: List<AppInfo> = allList.filter {
+            !OneKeyListUtils.existsInOneKeyList(
+                ctx,
+                ctx.getString(R.string.sAutoFreezeApplicationList),
+                it.applicationId
+            ) && !existsList.contains(it)
+        }
+        if (newList.isEmpty()) {
+            if (allList.size != existsList.size) {
+                save(allList)
             }
-            val nameList = newList.map { it.name }.toTypedArray()
-            activity.runOnUiThread {
-                val selectedIndexSet = mutableSetOf<Int>()
-                AlertDialog.Builder(activity)
-                    .setIcon(R.mipmap.ic_launcher_new_round)
-                    .setTitle("新应用添加到一键冻结")
-                    .setMultiChoiceItems(nameList, null) { _, position, selected ->
-                        if (selected) {
-                            selectedIndexSet.add(position)
-                        } else {
-                            selectedIndexSet.remove(position)
-                        }
-                    }.setNegativeButton("下次再说") { _, _ ->
-                    }.setNeutralButton("全部确定") { _, _ ->
-                        save(allList)
-                        add(activity, newList)
-                    }.setPositiveButton("确定") { _, _ ->
-                        save(allList)
-                        if (selectedIndexSet.isEmpty()) {
-                            return@setPositiveButton
-                        }
-                        add(activity, selectedIndexSet.map { newList[it] })
-                    }.show()
+            return
+        }
+        val nameList = newList.map { it.name }.toTypedArray()
+        activity.runOnUiThread {
+            try {
+                showDialog(activity, nameList, allList, newList)
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
-        }.start()
+        }
+    }
+
+    private fun showDialog(
+        activity: Activity,
+        nameList: Array<String>,
+        allList: List<AppInfo>,
+        newList: List<AppInfo>
+    ) {
+        running = true
+        val selectedIndexSet = mutableSetOf<Int>()
+        val dialog = AlertDialog.Builder(activity)
+            .setIcon(R.mipmap.ic_launcher_new_round)
+            .setTitle("新应用添加到一键冻结")
+            .setMultiChoiceItems(nameList, null) { _, position, selected ->
+                if (selected) {
+                    selectedIndexSet.add(position)
+                } else {
+                    selectedIndexSet.remove(position)
+                }
+            }.setNegativeButton("下次再说") { _, _ ->
+            }.setNeutralButton("全部确定") { _, _ ->
+                save(allList)
+                add(activity, newList)
+            }.setPositiveButton("确定") { _, _ ->
+                save(allList)
+                if (selectedIndexSet.isEmpty()) {
+                    return@setPositiveButton
+                }
+                add(activity, selectedIndexSet.map { newList[it] })
+            }.show()
+        dialog.setOnDismissListener {
+            running = false
+        }
     }
 
     private fun add(
