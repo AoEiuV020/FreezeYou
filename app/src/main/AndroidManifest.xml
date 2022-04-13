@@ -83,7 +83,7 @@
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_descriptor"
         android:icon="@mipmap/ic_launcher_new_round"
-        android:label="自冻·鱼"
+        android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_new_round">
 
         <activity
@@ -127,7 +127,7 @@
             android:enabled="false"
             android:exported="true"
             android:icon="@mipmap/ic_launcher_round"
-            android:label="自冻·鱼"
+            android:label="@string/app_name"
             android:launchMode="singleTask"
             android:targetActivity=".Main"
             android:theme="@style/AppTheme.SplashScreen">
@@ -149,7 +149,7 @@
             android:enabled="false"
             android:exported="true"
             android:icon="@mipmap/ic_launcher"
-            android:label="自冻·鱼"
+            android:label="@string/app_name"
             android:launchMode="singleTask"
             android:targetActivity=".Main"
             android:theme="@style/AppTheme.SplashScreen">
@@ -171,7 +171,7 @@
             android:enabled="true"
             android:exported="true"
             android:icon="@mipmap/ic_launcher_new_round"
-            android:label="自冻·鱼"
+            android:label="@string/app_name"
             android:launchMode="singleTask"
             android:roundIcon="@mipmap/ic_launcher_new_round"
             android:targetActivity=".Main"
