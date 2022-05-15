@@ -10,7 +10,6 @@ import cf.playhi.freezeyou.utils.AlertDialogUtils
 import cf.playhi.freezeyou.utils.ApplicationLabelUtils
 import cf.playhi.freezeyou.utils.OneKeyListUtils
 import cf.playhi.freezeyou.utils.ToastUtils
-import java.lang.Exception
 
 /**
  * Created by AoEiuV020 on 2021.12.23-01:03:20.
@@ -18,7 +17,7 @@ import java.lang.Exception
 @SuppressLint("StaticFieldLeak")
 object AddNewAppHelper {
     const val name = "AddNewAppHelper"
-    const val key = "exists"
+    const val key = "appInfoList"
     private lateinit var ctx: Context
     private var running: Boolean = false
     val sharedPreferences: SharedPreferences
@@ -43,7 +42,7 @@ object AddNewAppHelper {
     }
 
     private fun realCheck(activity: Activity) {
-        val existsList = load()
+        val existsList = load().associateBy { it.applicationId }
         val allList =
             ctx.packageManager.getInstalledPackages(0)
                 .map {
@@ -53,20 +52,21 @@ object AddNewAppHelper {
                         it.applicationInfo,
                         it.packageName
                     )
-                    AppInfo(name, it.packageName)
+                    AppInfo(name, it.packageName, it.firstInstallTime)
                 }
+        if (allList.isEmpty()) {
+            return
+        }
 
         val newList: List<AppInfo> = allList.filter {
             !OneKeyListUtils.existsInOneKeyList(
                 ctx,
                 ctx.getString(R.string.sAutoFreezeApplicationList),
                 it.applicationId
-            ) && !existsList.contains(it)
+            ) && (existsList[it.applicationId]?.firstInstallTime ?: 0) < it.firstInstallTime
         }
         if (newList.isEmpty()) {
-            if (allList.size != existsList.size) {
-                save(allList)
-            }
+            save(allList)
             return
         }
         val nameList = newList.map { it.name }.toTypedArray()
@@ -138,21 +138,23 @@ object AddNewAppHelper {
     }
 
     private fun save(appInfoList: List<AppInfo>) {
-        val value = appInfoList.joinToString("\n") { it.applicationId + '/' + it.name }
+        val value =
+            appInfoList.joinToString("\n") { it.firstInstallTime.toString() + '/' + it.applicationId + '/' + it.name }
         sharedPreferences.edit().putString(key, value).apply()
     }
 
     private fun load(): List<AppInfo> {
         val value = sharedPreferences.getString(key, null) ?: return emptyList()
         return value.split('\n').map {
-            val (applicationId, name) = it.split('/')
-            AppInfo(name, applicationId)
+            val (timeString, applicationId, name) = it.split('/')
+            AppInfo(name, applicationId, timeString.toLong())
         }
     }
 
     private data class AppInfo(
         val name: String,
         val applicationId: String,
+        val firstInstallTime: Long,
     ) {
         override fun equals(other: Any?): Boolean {
             return applicationId == (other as? AppInfo)?.applicationId
