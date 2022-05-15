@@ -370,7 +370,7 @@
     <string name="verifyToContinue">Verify to continue</string>
     <string name="authenticationFailed">Authentication failed</string>
     <string name="authenticationError_colon">Authentication error: %1$s</string>
-    <string name="correspondingAndAvailableWebsiteUrlLanguageCode">en-US</string>
+    <string name="correspondingAndAvailableWebsiteUrlLanguageCode">#</string>
     <string name="forceStop">Force Stop</string>
     <string name="unfrozenUA">Unfrozen User App</string>
     <string name="lastInstall">Recently Installed</string>
@@ -385,6 +385,13 @@
     <string name="selfRevokeProfileOwnerSummary">If the profile owner is set, we need to release it before uninstalling the application.</string>
     <string name="isNotProfileOwner">Is not profile owner</string>
     <string name="getBackupData">Get backup data</string>
+    <string name="theAppHasNotificationInTheNotificationBar">The application has notifications in the notification bar</string>
+    <string name="theAppIsCurrentlyTheForegroundApp">The application is currently the foreground application</string>
+    <string name="operationOnFreezeYouIsNotAllowed">Operation on FreezeYou is not allowed</string>
+    <string name="shizukuVersionIsTooLow">Shizuku version is too low</string>
+    <string name="shizukuIsNotInstalledOrOtherExceptions">Shizuku is not installed or other exceptions</string>
+    <string name="includeFUFActivityInRecents">Include freeze and unfreeze activity in recents</string>
+    <string name="playFUFAnimations">Play freeze and unfreeze animations</string>
     <string name="sFreezeOnceQuit" translatable="false">New_FreezeOnceQuit</string>
     <string name="sAutoFreezeApplicationList" translatable="false">New_AutoFreezeApplicationList</string>
     <string name="sOneKeyUFApplicationList" translatable="false">New_OneKeyUFApplicationList</string>
@@ -537,6 +544,9 @@
         <item>System App (Disable Mode)</item>
         <item>System App (Disable_User Mode)</item>
         <item>System App (Disable_Until_Used Mode)</item>
+        <item>Shizuku (Disable Mode)</item>
+        <item>Shizuku (Disable_User Mode)</item>
+        <item>Shizuku (Disable_Until_Used Mode)</item>
     </string-array>
     <string-array name="selectFUFModeSelectionValues" translatable="false">
         <item>1</item>
@@ -547,6 +557,9 @@
         <item>6</item>
         <item>5</item>
         <item>4</item>
+        <item>10</item>
+        <item>9</item>
+        <item>8</item>
     </string-array>
     <string-array name="themeOfAutoSwitchDarkModeEntries">
         <item>Dark</item>

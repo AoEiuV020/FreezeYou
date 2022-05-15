@@ -1,25 +1,35 @@
 package cf.playhi.freezeyou.fuf
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.IBinder
+import android.system.Os
 import cf.playhi.freezeyou.DeviceAdminReceiver.getComponentName
 import cf.playhi.freezeyou.utils.DevicePolicyManagerUtils.*
 import cf.playhi.freezeyou.utils.FUFUtils.checkMRootFrozen
 import cf.playhi.freezeyou.utils.FUFUtils.isSystemApp
 import cf.playhi.freezeyou.utils.ProcessUtils.fAURoot
+import rikka.shizuku.ShizukuBinderWrapper
+import rikka.shizuku.SystemServiceHelper
+import java.lang.reflect.InvocationTargetException
 
 open class FUFSinglePackage(
-    private val mContext: Context,
-    private val mSinglePackageName: String,
-    private val mActionMode: Int,
-    private val mAPIMode: Int
+    open val context: Context,
+    open val singlePackageName: String,
+    open val actionMode: Int,
+    open val apiMode: Int
 ) {
 
-    fun commit(): Int {
-        if (mSinglePackageName.isBlank()) return ERROR_SINGLE_PACKAGE_NAME_IS_BLANK
+    open suspend fun commit(): Int {
+        if (singlePackageName.isBlank()) return ERROR_SINGLE_PACKAGE_NAME_IS_BLANK
 
-        return when (mAPIMode) {
+        if ("cc.aoeiuv020.freezeyou" == singlePackageName) {
+            return ERROR_OPERATION_ON_FREEZEYOU_IS_NOT_ALLOWED
+        }
+
+        return when (apiMode) {
             @Suppress("DEPRECATION")
             API_FREEZEYOU_LEGACY_AUTO ->
                 pureExecuteAPIAutoAction()
@@ -37,20 +47,24 @@ open class FUFSinglePackage(
                 pureExecuteAPISystemAppDisabledUntilUsedAction()
             API_FREEZEYOU_SYSTEM_APP_ENABLE_DISABLE_USER ->
                 pureExecuteAPISystemAppDisabledUserAction()
+            API_FREEZEYOU_SHIZUKU_SYSTEM_APP_ENABLE_DISABLE,
+            API_FREEZEYOU_SHIZUKU_SYSTEM_APP_ENABLE_DISABLE_UNTIL_USED,
+            API_FREEZEYOU_SHIZUKU_SYSTEM_APP_ENABLE_DISABLE_USER ->
+                pureExecuteAPIShizukuAction()
             else ->
                 ERROR_NO_SUCH_API_MODE
         }
     }
 
     private fun pureExecuteAPIAutoAction(): Int {
-        return if (mActionMode == ACTION_MODE_FREEZE) {
-            if (Build.VERSION.SDK_INT >= 21 && isDeviceOwner(mContext)) {
+        return if (actionMode == ACTION_MODE_FREEZE) {
+            if (Build.VERSION.SDK_INT >= 21 && isDeviceOwner(context)) {
                 pureExecuteAPIDPMAction()
             } else {
                 pureExecuteAPIRootAction()
             }
         } else {
-            if (checkMRootFrozen(mContext, mSinglePackageName)) {
+            if (checkMRootFrozen(context, singlePackageName)) {
                 pureExecuteAPIDPMAction()
             } else {
                 pureExecuteAPIRootAction()
@@ -61,34 +75,31 @@ open class FUFSinglePackage(
     private fun pureExecuteAPIDPMAction(): Int {
 
         if (Build.VERSION.SDK_INT < 21) return ERROR_DEVICE_ANDROID_VERSION_TOO_LOW
-        if (!isDeviceOwner(mContext)) return ERROR_NOT_DEVICE_POLICY_MANAGER
+        if (!isDeviceOwner(context)) return ERROR_NOT_DEVICE_POLICY_MANAGER
 
-        val hidden = mActionMode == ACTION_MODE_FREEZE
+        val hidden = actionMode == ACTION_MODE_FREEZE
         if (!hidden &&
-            !getDevicePolicyManager(mContext)
-                .isApplicationHidden(getComponentName(mContext), mSinglePackageName)
+            !getDevicePolicyManager(context)
+                .isApplicationHidden(getComponentName(context), singlePackageName)
         ) {
             return ERROR_NO_ERROR_SUCCESS
         }
 
-        if ("cc.aoeiuv020.freezeyou" != mSinglePackageName) {
-            return if (getDevicePolicyManager(mContext).setApplicationHidden(
-                    getComponentName(mContext),
-                    mSinglePackageName,
-                    hidden
-                )
-            ) {
-                ERROR_NO_ERROR_SUCCESS
-            } else {
-                ERROR_DPM_EXECUTE_FAILED_FROM_SYSTEM
-            }
+        return if (getDevicePolicyManager(context).setApplicationHidden(
+                getComponentName(context),
+                singlePackageName,
+                hidden
+            )
+        ) {
+            ERROR_NO_ERROR_SUCCESS
+        } else {
+            ERROR_DPM_EXECUTE_FAILED_FROM_SYSTEM
         }
 
-        return ERROR_OTHER
     }
 
     private fun pureExecuteAPIRootAction(): Int {
-        return when (mAPIMode) {
+        return when (apiMode) {
             @Suppress("DEPRECATION")
             API_FREEZEYOU_LEGACY_AUTO, API_FREEZEYOU_ROOT_DISABLE_ENABLE ->
                 pureExecuteAPIRootAction(false)
@@ -102,24 +113,22 @@ open class FUFSinglePackage(
     private fun pureExecuteAPIRootAction(hideMode: Boolean): Int {
 
         var returnValue = ERROR_OTHER
-        val enable = mActionMode == ACTION_MODE_UNFREEZE
-        if ("cc.aoeiuv020.freezeyou" != mSinglePackageName) {
-            try {
-                val exitValue = fAURoot(mSinglePackageName, enable, hideMode)
-                returnValue = if (exitValue == 0) {
-                    ERROR_NO_ERROR_SUCCESS
-                } else {
-                    ERROR_OTHER
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                val eMsg = e.message
-                if (eMsg != null &&
-                    (eMsg.toLowerCase().contains("permission denied")
-                            || eMsg.toLowerCase().contains("not found"))
-                ) {
-                    returnValue = ERROR_NO_ROOT_PERMISSION
-                }
+        val enable = actionMode == ACTION_MODE_UNFREEZE
+        try {
+            val exitValue = fAURoot(singlePackageName, enable, hideMode)
+            returnValue = if (exitValue == 0) {
+                ERROR_NO_ERROR_SUCCESS
+            } else {
+                ERROR_OTHER
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            val eMsg = e.message
+            if (eMsg != null &&
+                (eMsg.contains("permission denied", true)
+                        || eMsg.contains("not found", true))
+            ) {
+                returnValue = ERROR_NO_ROOT_PERMISSION
             }
         }
         return returnValue
@@ -128,87 +137,131 @@ open class FUFSinglePackage(
     private fun pureExecuteAPISystemAppDisabledUntilUsedAction(): Int {
 
         if (Build.VERSION.SDK_INT < 18) return ERROR_DEVICE_ANDROID_VERSION_TOO_LOW
-        if (!isSystemApp(mContext)) return ERROR_NOT_SYSTEM_APP
-        var returnValue = ERROR_OTHER
-        val freeze = mActionMode == ACTION_MODE_FREEZE
-        if ("cc.aoeiuv020.freezeyou" != mSinglePackageName) {
-            mContext.packageManager.setApplicationEnabledSetting(
-                mSinglePackageName,
-                if (freeze)
-                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED
-                else
-                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                0
-            )
-            returnValue = ERROR_NO_ERROR_CAUGHT_UNKNOWN_RESULT
-        }
-        return returnValue
+        if (!isSystemApp(context)) return ERROR_NOT_SYSTEM_APP
+        val freeze = actionMode == ACTION_MODE_FREEZE
+        context.packageManager.setApplicationEnabledSetting(
+            singlePackageName,
+            if (freeze)
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED
+            else
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+            0
+        )
+        return ERROR_NO_ERROR_CAUGHT_UNKNOWN_RESULT
     }
 
     private fun pureExecuteAPISystemAppDisabledUserAction(): Int {
 
-        if (!isSystemApp(mContext)) return ERROR_NOT_SYSTEM_APP
-        var returnValue = ERROR_OTHER
-        val freeze = mActionMode == ACTION_MODE_FREEZE
-        if ("cc.aoeiuv020.freezeyou" != mSinglePackageName) {
-            mContext.packageManager.setApplicationEnabledSetting(
-                mSinglePackageName,
-                if (freeze)
-                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER
-                else
-                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                0
-            )
-            returnValue = ERROR_NO_ERROR_CAUGHT_UNKNOWN_RESULT
-        }
-        return returnValue
+        if (!isSystemApp(context)) return ERROR_NOT_SYSTEM_APP
+        val freeze = actionMode == ACTION_MODE_FREEZE
+        context.packageManager.setApplicationEnabledSetting(
+            singlePackageName,
+            if (freeze)
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER
+            else
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+            0
+        )
+        return ERROR_NO_ERROR_CAUGHT_UNKNOWN_RESULT
     }
 
     private fun pureExecuteAPISystemAppDisabledAction(): Int {
 
-        if (!isSystemApp(mContext)) return ERROR_NOT_SYSTEM_APP
-        var returnValue = ERROR_OTHER
-        val freeze = mActionMode == ACTION_MODE_FREEZE
-        if ("cc.aoeiuv020.freezeyou" != mSinglePackageName) {
-            mContext.packageManager.setApplicationEnabledSetting(
-                mSinglePackageName,
-                if (freeze)
-                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED
-                else
-                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                0
-            )
-            returnValue = ERROR_NO_ERROR_CAUGHT_UNKNOWN_RESULT
-        }
-        return returnValue
+        if (!isSystemApp(context)) return ERROR_NOT_SYSTEM_APP
+        val freeze = actionMode == ACTION_MODE_FREEZE
+        context.packageManager.setApplicationEnabledSetting(
+            singlePackageName,
+            if (freeze)
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+            else
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+            0
+        )
+        return ERROR_NO_ERROR_CAUGHT_UNKNOWN_RESULT
     }
 
     private fun pureExecuteAPIProfileOwnerAction(): Int {
 
         if (Build.VERSION.SDK_INT < 21) return ERROR_DEVICE_ANDROID_VERSION_TOO_LOW
-        if (!isProfileOwner(mContext)) return ERROR_NOT_PROFILE_OWNER
+        if (!isProfileOwner(context)) return ERROR_NOT_PROFILE_OWNER
 
-        val hidden = mActionMode == ACTION_MODE_FREEZE
+        val hidden = actionMode == ACTION_MODE_FREEZE
         if (!hidden &&
-            !getDevicePolicyManager(mContext)
-                .isApplicationHidden(getComponentName(mContext), mSinglePackageName)
+            !getDevicePolicyManager(context)
+                .isApplicationHidden(getComponentName(context), singlePackageName)
         ) {
             return ERROR_NO_ERROR_SUCCESS
         }
 
-        if ("cc.aoeiuv020.freezeyou" != mSinglePackageName) {
-            return if (getDevicePolicyManager(mContext).setApplicationHidden(
-                    getComponentName(mContext),
-                    mSinglePackageName,
-                    hidden
-                )
-            ) {
-                ERROR_NO_ERROR_SUCCESS
-            } else {
-                ERROR_PROFILE_OWNER_EXECUTE_FAILED_FROM_SYSTEM
-            }
+        return if (getDevicePolicyManager(context).setApplicationHidden(
+                getComponentName(context),
+                singlePackageName,
+                hidden
+            )
+        ) {
+            ERROR_NO_ERROR_SUCCESS
+        } else {
+            ERROR_PROFILE_OWNER_EXECUTE_FAILED_FROM_SYSTEM
         }
 
+    }
+
+    private fun pureExecuteAPIShizukuAction(): Int {
+
+        if (Build.VERSION.SDK_INT < 23) return ERROR_DEVICE_ANDROID_VERSION_TOO_LOW
+
+        try {
+            val freeze = actionMode == ACTION_MODE_FREEZE
+
+            @SuppressLint("PrivateApi")
+            val cls = Class.forName("android.content.pm.IPackageManager\$Stub")
+                .getMethod("asInterface", IBinder::class.java)
+                .invoke(null, ShizukuBinderWrapper(SystemServiceHelper.getSystemService("package")))
+            cls::class.java.getMethod(
+                "setApplicationEnabledSetting",
+                String::class.java, // packageName
+                Int::class.java, // newState
+                Int::class.java, // flags
+                Int::class.java, // userId
+                String::class.java // callingPackage
+            ).invoke(
+                cls,
+                singlePackageName,
+                if (freeze) {
+                    when (apiMode) {
+                        API_FREEZEYOU_SHIZUKU_SYSTEM_APP_ENABLE_DISABLE_UNTIL_USED ->
+                            PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED
+                        API_FREEZEYOU_SHIZUKU_SYSTEM_APP_ENABLE_DISABLE_USER ->
+                            PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER
+                        API_FREEZEYOU_SHIZUKU_SYSTEM_APP_ENABLE_DISABLE ->
+                            PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+                        else ->
+                            PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                    }
+                } else {
+                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                },
+                0,
+                /**
+                 * .../private/android_filesystem_config.h
+                 * #define AID_USER 100000        /* \T\O\D\O: switch users over to AID_USER_OFFSET */
+                 * #define AID_USER_OFFSET 100000 /* offset for uid ranges for each user */
+                 */
+                Os.getuid() / 100000,
+                "cc.aoeiuv020.freezeyou"
+            )
+            return ERROR_NO_ERROR_CAUGHT_UNKNOWN_RESULT
+        } catch (e: InvocationTargetException) {
+            e.printStackTrace()
+            if (e.cause is SecurityException) {
+                return ERROR_INSUFFICIENT_PERMISSION
+            }
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+            return ERROR_INSUFFICIENT_PERMISSION
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
         return ERROR_OTHER
     }
 
@@ -227,6 +280,12 @@ open class FUFSinglePackage(
         const val ERROR_NOT_SYSTEM_APP = -8
         const val ERROR_NOT_PROFILE_OWNER = -9
         const val ERROR_PROFILE_OWNER_EXECUTE_FAILED_FROM_SYSTEM = -10
+        const val ERROR_OPERATION_ON_FREEZEYOU_IS_NOT_ALLOWED = -11
+        const val ERROR_USER_SET_NOT_ALLOWED_TO_FREEZE_FOREGROUND_APPLICATION = -12
+        const val ERROR_USER_SET_NOT_ALLOWED_TO_FREEZE_NOTIFYING_APPLICATION = -13
+        const val ERROR_NO_SUFFICIENT_PERMISSION_TO_START_THIS_ACTIVITY = -14
+        const val ERROR_CANNOT_FIND_THE_LAUNCH_INTENT_OR_UNFREEZE_FAILED = -15
+        const val ERROR_INSUFFICIENT_PERMISSION = -16
 
         /**
          * 使用 FreezeYou 的 自动（免ROOT(DPM)/ROOT(DISABLE)） 模式
@@ -272,6 +331,21 @@ open class FUFSinglePackage(
          * 使用 FreezeYou 的 免ROOT (Profile Owner) 模式
          */
         const val API_FREEZEYOU_MROOT_PROFILE_OWNER = 7
+
+        /**
+         * 使用 FreezeYou 的借助 Shizuku 的 System App (DISABLE_UNTIL_USED) 模式
+         */
+        const val API_FREEZEYOU_SHIZUKU_SYSTEM_APP_ENABLE_DISABLE_UNTIL_USED = 8
+
+        /**
+         * 使用 FreezeYou 的借助 Shizuku 的 System App (DISABLE_USER) 模式
+         */
+        const val API_FREEZEYOU_SHIZUKU_SYSTEM_APP_ENABLE_DISABLE_USER = 9
+
+        /**
+         * 使用 FreezeYou 的借助 Shizuku 的 System App (DISABLE) 模式
+         */
+        const val API_FREEZEYOU_SHIZUKU_SYSTEM_APP_ENABLE_DISABLE = 10
 
     }
 }
