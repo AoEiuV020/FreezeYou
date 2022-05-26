@@ -42,7 +42,7 @@ object AddNewAppHelper {
     }
 
     private fun realCheck(activity: Activity) {
-        val existsList = load().associateBy { it.applicationId }
+        val existsMap = load().associateBy { it.applicationId }.toMutableMap()
         val allList =
             ctx.packageManager.getInstalledPackages(0)
                 .map {
@@ -59,20 +59,22 @@ object AddNewAppHelper {
         }
 
         val newList: List<AppInfo> = allList.filter {
-            !OneKeyListUtils.existsInOneKeyList(
+            val reinstalled = !OneKeyListUtils.existsInOneKeyList(
                 ctx,
                 ctx.getString(R.string.sAutoFreezeApplicationList),
                 it.applicationId
-            ) && (existsList[it.applicationId]?.firstInstallTime ?: 0) < it.firstInstallTime
+            ) && (existsMap[it.applicationId]?.firstInstallTime ?: 0) < it.firstInstallTime
+            existsMap[it.applicationId] = it
+            reinstalled
         }
         if (newList.isEmpty()) {
-            save(allList)
+            save(existsMap)
             return
         }
         val nameList = newList.map { it.name }.toTypedArray()
         activity.runOnUiThread {
             try {
-                showDialog(activity, nameList, allList, newList)
+                showDialog(activity, nameList, existsMap, newList)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -82,7 +84,7 @@ object AddNewAppHelper {
     private fun showDialog(
         activity: Activity,
         nameList: Array<String>,
-        allList: List<AppInfo>,
+        existsMap: Map<String, AppInfo>,
         newList: List<AppInfo>
     ) {
         running = true
@@ -98,10 +100,10 @@ object AddNewAppHelper {
                 }
             }.setNegativeButton("下次再说") { _, _ ->
             }.setNeutralButton("全部确定") { _, _ ->
-                save(allList)
+                save(existsMap)
                 add(activity, newList)
             }.setPositiveButton("确定") { _, _ ->
-                save(allList)
+                save(existsMap)
                 if (selectedIndexSet.isEmpty()) {
                     return@setPositiveButton
                 }
@@ -137,9 +139,10 @@ object AddNewAppHelper {
         }
     }
 
-    private fun save(appInfoList: List<AppInfo>) {
-        val value =
-            appInfoList.joinToString("\n") { it.firstInstallTime.toString() + '/' + it.applicationId + '/' + it.name }
+    private fun save(existsMap: Map<String, AppInfo>) {
+        val value = existsMap.values.joinToString("\n") {
+            it.firstInstallTime.toString() + '/' + it.applicationId + '/' + it.name
+        }
         sharedPreferences.edit().putString(key, value).apply()
     }
 
