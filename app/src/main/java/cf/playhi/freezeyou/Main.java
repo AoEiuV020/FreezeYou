@@ -1300,7 +1300,6 @@ public class Main extends FreezeYouBaseActivity {
             }
         });
         initThread.start();
-        checkLongTimeNotUpdated();
     }
 
     /**
