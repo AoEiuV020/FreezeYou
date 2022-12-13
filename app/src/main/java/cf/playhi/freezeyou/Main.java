@@ -62,6 +62,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import cc.aoeiuv020.BackHelper;
 import cf.playhi.freezeyou.adapter.MainAppListSimpleAdapter;
 import cf.playhi.freezeyou.app.FreezeYouBaseActivity;
 import cf.playhi.freezeyou.service.FUFService;
@@ -183,6 +184,15 @@ public class Main extends FreezeYouBaseActivity {
 //        setIntent(intent);
 //        go();
 //    }
+
+
+    @Override
+    public void onBackPressed() {
+        if (BackHelper.INSTANCE.onBackPressed(this)) {
+            return;
+        }
+        super.onBackPressed();
+    }
 
     @Override
     protected void onResume() {
