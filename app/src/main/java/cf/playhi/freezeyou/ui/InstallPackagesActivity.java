@@ -1,7 +1,6 @@
 package cf.playhi.freezeyou.ui;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.DialogInterface;
@@ -18,6 +17,7 @@ import android.view.Window;
 import android.widget.CheckBox;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.FileProvider;
 
 import net.grandcentrix.tray.AppPreferences;
@@ -40,6 +40,7 @@ import cf.playhi.freezeyou.utils.InstallPackagesUtils;
 import cf.playhi.freezeyou.utils.MoreUtils;
 import cf.playhi.freezeyou.utils.ServiceUtils;
 
+import static cf.playhi.freezeyou.app.FreezeYouAlertDialogBuilderKt.FreezeYouAlertDialogBuilder;
 import static cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageBooleanKeys.notAllowInstallWhenIsObsd;
 import static cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageBooleanKeys.tryToAvoidUpdateWhenUsing;
 import static cf.playhi.freezeyou.utils.ApplicationLabelUtils.getApplicationLabel;
@@ -521,9 +522,11 @@ public class InstallPackagesActivity extends FreezeYouBaseActivity {
         installPackagesAlertDialog.show();
         Window w = installPackagesAlertDialog.getWindow();
         if (w != null) {
-            View v = (View) w.findViewById(android.R.id.custom).getParent();
+            View v = (View) w.findViewById(android.R.id.custom);
             if (v != null) {
-                v.setMinimumHeight(0);
+                View p = (View) v.getParent();
+                if (p != null)
+                    p.setMinimumHeight(0);
             }
         }
     }
@@ -532,7 +535,7 @@ public class InstallPackagesActivity extends FreezeYouBaseActivity {
                                                         final Uri packageUri,
                                                         final PackageInfo processedPackageInfo,
                                                         final boolean preDefinedTryToAvoidUpdateWhenUsing) {
-        AlertDialog.Builder adbd = new AlertDialog.Builder(InstallPackagesActivity.this);
+        AlertDialog.Builder adbd = FreezeYouAlertDialogBuilder(InstallPackagesActivity.this);
         adbd.setMessage(R.string.installPerimisionCheckFailed_ifContinue);
         adbd.setTitle(R.string.notice);
         adbd.setPositiveButton(R.string.yes, (dialog, which) -> {

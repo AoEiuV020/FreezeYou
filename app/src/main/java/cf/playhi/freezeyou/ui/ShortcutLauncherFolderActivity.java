@@ -1,6 +1,5 @@
 package cf.playhi.freezeyou.ui;
 
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -17,6 +16,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -31,6 +32,7 @@ import cf.playhi.freezeyou.utils.OneKeyListUtils;
 import cf.playhi.freezeyou.utils.Support;
 
 import static android.view.Window.FEATURE_NO_TITLE;
+import static cf.playhi.freezeyou.app.FreezeYouAlertDialogBuilderKt.FreezeYouAlertDialogBuilder;
 import static cf.playhi.freezeyou.utils.ThemeUtils.processSetTheme;
 import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getApplicationIcon;
 import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getBitmapFromDrawable;
@@ -111,7 +113,7 @@ public class ShortcutLauncherFolderActivity extends FreezeYouBaseActivity implem
     }
 
     private void doCreateShortCut() {
-        AlertDialog.Builder ab = new AlertDialog.Builder(this);
+        AlertDialog.Builder ab = FreezeYouAlertDialogBuilder(this);
         View confirmIconNameDialogView = View.inflate(this, R.layout.slfa_confirm_icon_name_dialog, null);
         final EditText editText = confirmIconNameDialogView.findViewById(R.id.slfa_confirm_icon_name_dialog_editText);
         final ImageButton imageButton = confirmIconNameDialogView.findViewById(R.id.slfa_confirm_icon_name_dialog_imageButton);
@@ -148,9 +150,11 @@ public class ShortcutLauncherFolderActivity extends FreezeYouBaseActivity implem
         dialog = alertDialog;
         Window w = alertDialog.getWindow();
         if (w != null) {
-            View v = (View) w.findViewById(android.R.id.custom).getParent();
+            View v = (View) w.findViewById(android.R.id.custom);
             if (v != null) {
-                v.setMinimumHeight(0);
+                View p = (View) v.getParent();
+                if (p != null)
+                    p.setMinimumHeight(0);
             }
         }
     }
@@ -237,7 +241,7 @@ public class ShortcutLauncherFolderActivity extends FreezeYouBaseActivity implem
         });
 
         slf_folderName_textView.setOnClickListener(v -> {
-            final AlertDialog.Builder builder = new AlertDialog.Builder(ShortcutLauncherFolderActivity.this);
+            final AlertDialog.Builder builder = FreezeYouAlertDialogBuilder(ShortcutLauncherFolderActivity.this);
             final EditText input = new EditText(ShortcutLauncherFolderActivity.this);
             final LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -255,9 +259,11 @@ public class ShortcutLauncherFolderActivity extends FreezeYouBaseActivity implem
             AlertDialog alertDialog = builder.show();
             Window w = alertDialog.getWindow();
             if (w != null) {
-                View v1 = (View) w.findViewById(android.R.id.custom).getParent();
+                View v1 = (View) w.findViewById(android.R.id.custom);
                 if (v1 != null) {
-                    v1.setMinimumHeight(0);
+                    View p = (View) v1.getParent();
+                    if (p != null)
+                        p.setMinimumHeight(0);
                 }
             }
         });

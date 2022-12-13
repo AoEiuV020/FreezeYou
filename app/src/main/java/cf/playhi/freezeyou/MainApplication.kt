@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.annotation.NonNull
 import androidx.preference.PreferenceManager
 import cf.playhi.freezeyou.service.ScreenLockOneKeyFreezeService
@@ -13,9 +14,11 @@ import cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageStringKeys
 import cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageStringKeys.languagePref
 import cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageStringKeys.selectFUFMode
 import cf.playhi.freezeyou.storage.mmkv.DefaultMultiProcessMMKVStorage
+import cf.playhi.freezeyou.utils.FUFUtils.checkAndEnableShizukuMultiProcessSupport
 import cf.playhi.freezeyou.utils.OneKeyListUtils
 import cf.playhi.freezeyou.utils.ServiceUtils
 import com.getkeepsafe.relinker.ReLinker
+import com.google.android.material.color.DynamicColors
 import com.tencent.mmkv.MMKV
 import net.grandcentrix.tray.AppPreferences
 import java.io.File
@@ -45,6 +48,10 @@ class MainApplication : Application() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            DynamicColors.applyToActivitiesIfAvailable(this)
+        }
+        checkAndEnableShizukuMultiProcessSupport(this)
         checkAndStartScreenLockOneKeyFreezeService()
     }
 

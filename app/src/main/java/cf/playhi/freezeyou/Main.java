@@ -1,41 +1,5 @@
 package cf.playhi.freezeyou;
 
-import static cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageBooleanKeys.lesserToast;
-import static cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageBooleanKeys.showInRecents;
-import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageBooleanKeys.cacheApplicationsIcons;
-import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageBooleanKeys.noCaution;
-import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageBooleanKeys.saveOnClickFunctionStatus;
-import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageBooleanKeys.saveSortMethodStatus;
-import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageStringKeys.launchMode;
-import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageStringKeys.mainActivityPattern;
-import static cf.playhi.freezeyou.utils.AlertDialogUtils.buildAlertDialog;
-import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getApplicationIcon;
-import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getBitmapFromDrawable;
-import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getGrayBitmap;
-import static cf.playhi.freezeyou.utils.ApplicationInfoUtils.getApplicationInfoFromPkgName;
-import static cf.playhi.freezeyou.utils.ApplicationLabelUtils.getApplicationLabel;
-import static cf.playhi.freezeyou.utils.ClipboardUtils.copyToClipboard;
-import static cf.playhi.freezeyou.utils.FUFUtils.askRun;
-import static cf.playhi.freezeyou.utils.FUFUtils.processFreezeAction;
-import static cf.playhi.freezeyou.utils.FUFUtils.processUnfreezeAction;
-import static cf.playhi.freezeyou.utils.FUFUtils.realGetFrozenStatus;
-import static cf.playhi.freezeyou.utils.LauncherShortcutUtils.checkSettingsAndRequestCreateShortcut;
-import static cf.playhi.freezeyou.utils.LauncherShortcutUtils.createShortCut;
-import static cf.playhi.freezeyou.utils.MoreUtils.processListFilter;
-import static cf.playhi.freezeyou.utils.MoreUtils.requestOpenWebSite;
-import static cf.playhi.freezeyou.utils.OneKeyListUtils.addToOneKeyList;
-import static cf.playhi.freezeyou.utils.OneKeyListUtils.removeFromOneKeyList;
-import static cf.playhi.freezeyou.utils.Support.showChooseActionPopupMenu;
-import static cf.playhi.freezeyou.utils.ThemeUtils.getThemeDot;
-import static cf.playhi.freezeyou.utils.ThemeUtils.getThemeFabDotBackground;
-import static cf.playhi.freezeyou.utils.ThemeUtils.getThemeSecondDot;
-import static cf.playhi.freezeyou.utils.ThemeUtils.getUiTheme;
-import static cf.playhi.freezeyou.utils.ThemeUtils.processSetTheme;
-import static cf.playhi.freezeyou.utils.ToastUtils.showToast;
-import static cf.playhi.freezeyou.utils.VersionUtils.checkUpdate;
-import static cf.playhi.freezeyou.utils.VersionUtils.getVersionCode;
-import static cf.playhi.freezeyou.utils.VersionUtils.isOutdated;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -72,12 +36,12 @@ import android.widget.Adapter;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.PopupMenu;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -114,6 +78,43 @@ import cf.playhi.freezeyou.utils.AccessibilityUtils;
 import cf.playhi.freezeyou.utils.LauncherShortcutUtils;
 import cf.playhi.freezeyou.utils.ServiceUtils;
 import cf.playhi.freezeyou.utils.TasksUtils;
+
+import static cf.playhi.freezeyou.app.FreezeYouAlertDialogBuilderKt.FreezeYouAlertDialogBuilder;
+import static cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageBooleanKeys.lesserToast;
+import static cf.playhi.freezeyou.storage.key.DefaultMultiProcessMMKVStorageBooleanKeys.showInRecents;
+import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageBooleanKeys.cacheApplicationsIcons;
+import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageBooleanKeys.noCaution;
+import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageBooleanKeys.saveOnClickFunctionStatus;
+import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageBooleanKeys.saveSortMethodStatus;
+import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageStringKeys.launchMode;
+import static cf.playhi.freezeyou.storage.key.DefaultSharedPreferenceStorageStringKeys.mainActivityPattern;
+import static cf.playhi.freezeyou.utils.AlertDialogUtils.buildAlertDialog;
+import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getApplicationIcon;
+import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getBitmapFromDrawable;
+import static cf.playhi.freezeyou.utils.ApplicationIconUtils.getGrayBitmap;
+import static cf.playhi.freezeyou.utils.ApplicationInfoUtils.getApplicationInfoFromPkgName;
+import static cf.playhi.freezeyou.utils.ApplicationLabelUtils.getApplicationLabel;
+import static cf.playhi.freezeyou.utils.ClipboardUtils.copyToClipboard;
+import static cf.playhi.freezeyou.utils.FUFUtils.askRun;
+import static cf.playhi.freezeyou.utils.FUFUtils.processFreezeAction;
+import static cf.playhi.freezeyou.utils.FUFUtils.processUnfreezeAction;
+import static cf.playhi.freezeyou.utils.FUFUtils.realGetFrozenStatus;
+import static cf.playhi.freezeyou.utils.LauncherShortcutUtils.checkSettingsAndRequestCreateShortcut;
+import static cf.playhi.freezeyou.utils.LauncherShortcutUtils.createShortCut;
+import static cf.playhi.freezeyou.utils.MoreUtils.processListFilter;
+import static cf.playhi.freezeyou.utils.MoreUtils.requestOpenWebSite;
+import static cf.playhi.freezeyou.utils.OneKeyListUtils.addToOneKeyList;
+import static cf.playhi.freezeyou.utils.OneKeyListUtils.removeFromOneKeyList;
+import static cf.playhi.freezeyou.utils.Support.showChooseActionPopupMenu;
+import static cf.playhi.freezeyou.utils.ThemeUtils.getThemeDot;
+import static cf.playhi.freezeyou.utils.ThemeUtils.getThemeFabDotBackground;
+import static cf.playhi.freezeyou.utils.ThemeUtils.getThemeSecondDot;
+import static cf.playhi.freezeyou.utils.ThemeUtils.getUiTheme;
+import static cf.playhi.freezeyou.utils.ThemeUtils.processSetTheme;
+import static cf.playhi.freezeyou.utils.ToastUtils.showToast;
+import static cf.playhi.freezeyou.utils.VersionUtils.checkUpdate;
+import static cf.playhi.freezeyou.utils.VersionUtils.getVersionCode;
+import static cf.playhi.freezeyou.utils.VersionUtils.isOutdated;
 
 // Needs to be retained for compatibility
 // with old FreezeYou structures and settings.
@@ -1594,7 +1595,7 @@ public class Main extends FreezeYouBaseActivity {
             return;
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = FreezeYouAlertDialogBuilder(this);
         builder.setIcon(R.mipmap.ic_launcher_new_round);
         builder.setTitle(String.format(getString(R.string.welcomeToUseAppName), getString(R.string.app_name)));
         builder.setMessage(String.format(getString(R.string.welcomeToUseAppName), getString(R.string.app_name)));
@@ -1985,6 +1986,13 @@ public class Main extends FreezeYouBaseActivity {
                             }
                         }).start();
                         return true;
+                    case R.id.menu_vM_userDefined:
+                        addUserDefinedCategoriesTo(item.getSubMenu(),
+                                R.id.menu_vM_userDefined_menuGroup,
+                                R.id.menu_vM_userDefined_newClassification,
+                                0
+                        );
+                        return true;
                     case R.id.menu_update:
                         checkUpdate(Main.this);
                         return true;
@@ -2157,7 +2165,7 @@ public class Main extends FreezeYouBaseActivity {
 
     private void showAddNewUserDefinedClassificationDialog() {
         final EditText vmUserDefinedNameAlertDialogEditText = new EditText(this);
-        AlertDialog.Builder vmUserDefinedNameAlertDialog = new AlertDialog.Builder(this);
+        AlertDialog.Builder vmUserDefinedNameAlertDialog = FreezeYouAlertDialogBuilder(this);
         vmUserDefinedNameAlertDialog.setTitle(R.string.label);
         vmUserDefinedNameAlertDialog.setView(vmUserDefinedNameAlertDialogEditText);
         vmUserDefinedNameAlertDialog.setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
