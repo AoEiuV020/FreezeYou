@@ -71,6 +71,6 @@
         android:layout_margin="25dp"
         android:background="@drawable/shapedotblack"
         android:contentDescription="@string/add"
-        app:srcCompat="@drawable/ic_action_add" />
+        app:srcCompat="@drawable/ic_action_freeze" />
 
 </merge>

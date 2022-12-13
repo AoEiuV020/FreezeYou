@@ -63,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 
 import cc.aoeiuv020.BackHelper;
+import cc.aoeiuv020.FreezeHelper;
 import cf.playhi.freezeyou.adapter.MainAppListSimpleAdapter;
 import cf.playhi.freezeyou.app.FreezeYouBaseActivity;
 import cf.playhi.freezeyou.service.FUFService;
@@ -317,6 +318,9 @@ public class Main extends FreezeYouBaseActivity {
         moreSettingsImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (FreezeHelper.INSTANCE.onFloatButtonClick(Main.this)) {
+                    return;
+                }
                 moreSettingsImageButton.setAlpha(1f);
                 PopupMenu popupMenu = new PopupMenu(Main.this, v);
                 popupMenu.inflate(R.menu.menu);
