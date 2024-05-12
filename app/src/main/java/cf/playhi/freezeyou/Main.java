@@ -1315,6 +1315,7 @@ public class Main extends FreezeYouBaseActivity {
             }
         });
         initThread.start();
+        checkLongTimeNotUpdated();
     }
 
     /**
@@ -1548,7 +1549,7 @@ public class Main extends FreezeYouBaseActivity {
                             .putLong("Time", new Date().getTime())
                             .apply();
                 }
-                if (isOutdated(sharedPreferences)) {
+                if (false) {
 
                     if (isFinishing()) return;
 
